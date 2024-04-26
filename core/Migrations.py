@@ -5,9 +5,7 @@ from core.Database import Database
 
 class Migrations:
     def __init__(self):
-        # self.db = Database()
-        self.db = None
-        pass
+        self.db = Database()
 
     def get_migration_files(self, path='migrations', max_depth=5):
         migration_files = []
@@ -15,7 +13,7 @@ class Migrations:
         with os.scandir(path) as entries:
             for entry in entries:
                 if entry.is_file() and entry.name.endswith('.py'):
-                    migration_files.append(entry.name)
+                    migration_files.append(path + '/' + entry.name)
                 if entry.is_dir():
                     migration_files += self.get_migration_files(path + '/' + entry.name, max_depth - 1)
 
@@ -26,16 +24,19 @@ class Migrations:
 
         print('Scanning migrations directory...')
         # Scan migrations directory for migration files
-        migration_files = self.get_migration_files()
+        migration_paths = self.get_migration_files()
 
-        print('Found ' + str(len(migration_files)) + ' migration files')
+        print('Found ' + str(len(migration_paths)) + ' migration files')
 
-        for migration_file in migration_files:
-            print('Running migration file: ' + migration_file)
+        for migration_path in migration_paths:
+            print('Running migration file: ' + migration_path)
+
+            migration_path = migration_path.replace('/', '.').replace('\\', '.')[0:-3]
+            migration_file = migration_path.split('.')[-1]
 
             # import the class from the file
-            migration_import = __import__('migrations.' + migration_file[:-3], fromlist=['Migration'])
-            migration_class = getattr(migration_import, migration_file[:-3])
+            migration_import = __import__(migration_path, fromlist=['Migration'])
+            migration_class = getattr(migration_import, migration_file)
 
             migration = migration_class(self.db)
             # run the migration
@@ -44,4 +45,4 @@ class Migrations:
             migration.up()
             migration.migrate()
 
-            print('Migration file: ' + migration_file + ' ran successfully')
+            print('Migration file: ' + migration_path + ' ran successfully')
