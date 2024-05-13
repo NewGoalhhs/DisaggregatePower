@@ -23,5 +23,5 @@ class Database:
             user=dotenv_values()['DB_USERNAME'],
             passwd=dotenv_values()['DB_PASSWORD']
         )
-        connection.execute('CREATE DATABASE IF NOT EXISTS ' + dotenv_values()['DB_DATABASE'])
+        connection.cursor().execute('CREATE DATABASE IF NOT EXISTS ' + dotenv_values()['DB_DATABASE'])
         connection.close()
