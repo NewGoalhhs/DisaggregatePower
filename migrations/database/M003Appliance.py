@@ -1,3 +1,5 @@
+import pandas as pd
+
 from core.Migration import Migration
 from SQL.SQLQueries import ApplianceOperations as Query
 
@@ -7,3 +9,16 @@ class M003Appliance(Migration):
 
     def down(self):
         self.add_sql(Query.DROP_APPLIANCE_TABLE)
+
+    def exclude_columns(self):
+        return [
+            'main',
+            'time'
+        ]
+
+    def insert(self, csv_path):
+        data = pd.read_csv(csv_path, nrows=1).columns
+        for name in data:
+            if name in self.exclude_columns():
+                continue
+            self.add_sql(Query.INSERT_APPLIANCE.format(name))
