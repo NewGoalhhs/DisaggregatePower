@@ -1,6 +1,8 @@
 import os
 
 import keyboard
+from core.Generate import Generate
+from core.Screen import Screen
 
 
 class PrintHelper:
@@ -31,55 +33,44 @@ class PrintHelper:
         self.options = {}
         self.lines += 3
 
-    def add_option(self, text: str, function: callable):
-        print(' ' + self.primary_color + text)
-        self.options[text] = function
+    def add_option(self, key: str, text: str, function: callable):
+        print(self.get_color_code('reset') + f" [" + self.secondary_color + f"{key}" + self.get_color_code('reset') + f"] " + self.primary_color + text)
+        self.options[key] = {
+            'text': text,
+            'function': function
+        }
         self.lines += 1
 
     def choose_option(self):
         print()
         print(self.secondary_color + '-' * 50)
         print(self.get_color_code('reset'))
-        result = self.request_input('Enter an option: ', autocomplete=list(self.options.keys()))
-        print(result)
+        # result = self.request_input('Enter an option: ', autocomplete=list(self.options.keys()))
+        result = self.request_input('Enter an option: ')
+
         if result in self.options:
-            self.options[result]()
+            function = self.options[result]['function']
+            if function is None:
+                return
+            elif function == 'exit':
+                exit()
+            elif isinstance(function, Screen):
+                return function.screen(p=self)
+            elif isinstance(function, Generate):
+                return function.run(p=self)
+            elif function is callable:
+                return function(p=self)
+
         else:
             self.print_line('Invalid option')
-            self.choose_option()
+            return self.choose_option()
 
     def reset_lines(self):
         os.system('cls' if os.name == 'nt' else 'clear')
         self.lines = 0
 
-    def request_input(self, text: str, autocomplete: list = None):
-        print(text)
-        choosing = ''
-        while True:
-            autocompletion = [option.lower() for option in autocomplete if option.startswith(choosing.lower())]
-            if autocompletion:
-                print(autocompletion[0], end='\r')
-
-            stop = False
-
-            def keypress(e):
-                nonlocal choosing
-                nonlocal stop
-                if e.name == 'backspace':
-                    choosing = choosing[:-1]
-                elif e.name == 'enter':
-                    stop = True
-                elif e.name not in self.get_skip_keys():
-                    choosing += e.name
-
-            print(choosing, end='\r')
-
-            keyboard.on_press(keypress)
-
-            if stop:
-                break
-
-        return choosing
+    def request_input(self, text: str):
+        return input(text)
 
     @staticmethod
     def get_color_code(color: str) -> str:
