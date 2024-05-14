@@ -1,6 +1,5 @@
 import os
 
-import keyboard
 from core.Generate import Generate
 from core.Screen import Screen
 

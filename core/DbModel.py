@@ -1,3 +1,5 @@
+from abc import abstractmethod
+
 from core.Database import Database
 
 
@@ -26,3 +28,7 @@ class DbModel:
     @classmethod
     def fetch_all(cls) -> list:
         return cls.fetch_with({})
+
+    @abstractmethod
+    def insert(self):
+        pass
