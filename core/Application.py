@@ -1,9 +1,7 @@
 from helper.PrintHelper import PrintHelper
 
-
 class Application:
     def __init__(self):
-        app = self
         pass
 
     def run(self):

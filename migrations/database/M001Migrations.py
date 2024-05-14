@@ -1,15 +1,9 @@
 from core.Migration import Migration
-
+from SQL.SQLQueries import MigrationOperations as Query
 
 class M001Migrations(Migration):
     def up(self):
-        self.add_sql('''
-        CREATE TABLE Migrations (
-            `id` INT AUTO_INCREMENT PRIMARY KEY, 
-            `migration_name` VARCHAR(255),
-            `created` TIMESTAMP DEFAULT CURRENT_TIMESTAMP 
-            )
-        ''')
+        self.add_sql(Query.CREATE_MIGRATIONS_TABLE)
 
     def down(self):
-        self.add_sql('DROP TABLE IF EXISTS Migrations')
+        self.add_sql(Query.DROP_MIGRATIONS_TABLE)

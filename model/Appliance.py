@@ -1,6 +1,5 @@
 from core.DbModel import DbModel
 
-
 class PowerUsageAppliance(DbModel):
     def __init__(self):
         self.id = None

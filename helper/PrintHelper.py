@@ -1,8 +1,5 @@
 import os
 
-import keyboard
-
-
 class PrintHelper:
     def __init__(self, primary_color: str = 'blue', secondary_color: str = 'green'):
         self.options = None
@@ -73,8 +70,6 @@ class PrintHelper:
                     choosing += e.name
 
             print(choosing, end='\r')
-
-            keyboard.on_press(keypress)
 
             if stop:
                 break
