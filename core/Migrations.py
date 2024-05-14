@@ -5,7 +5,7 @@ from core.Database import Database
 
 class Migrations:
     def __init__(self):
-        self.db = Database()
+        self.db = Database(True)
 
     def get_migration_files(self, path='migrations', max_depth=5):
         migration_files = []
