@@ -1,10 +1,11 @@
 from abc import abstractmethod
 
 
-class Generate:
+class Screen:
     def __init__(self):
-        self.data = None
+        pass
 
     @abstractmethod
-    def run(self, p):
+    def screen(self, p):
         pass
+

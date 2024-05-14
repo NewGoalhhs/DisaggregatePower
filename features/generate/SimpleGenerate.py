@@ -5,5 +5,6 @@ class SimpleGenerate(Generate):
     def __init__(self):
         super().__init__()
 
-    def generate(self):
+    def run(self, p):
+        print('Simple generate')
         pass
