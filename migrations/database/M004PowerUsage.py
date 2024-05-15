@@ -28,7 +28,10 @@ class M004PowerUsage(Migration):
 
         final_df = pd.concat(data_frames, ignore_index=True)
 
-        records_to_insert = [tuple(x) for x in final_df.to_numpy()]
+        self.set_loading_bar_status('Retrieving data')
+        self.set_loading_bar_goal(len(final_df)*2)
 
-        for record in records_to_insert:
+        for x in final_df.to_numpy():
+            self.lb.update(1)
+            record = tuple(x)
             self.add_sql(Query.INSERT_POWER_USAGE.format(*record))
