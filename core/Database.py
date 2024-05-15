@@ -22,18 +22,18 @@ class Database:
     @staticmethod
     def fetch_with(model, table_name, where=None):
         connection = Database.connection()
+        connection.row_factory = sqlite3.Row
         cursor = connection.cursor()
 
         query = Query.SELECT_ALL.format(table_name)
         if where:
             query = Query.SELECT_WHERE.format(table_name, ' AND '.join([f"{k} = %({k})s" for k in where.keys()]))
 
-        print(query)
         cursor.execute(query, where)
         results = []
         for result in cursor.fetchall():
             model_instance = model()
-            for key, value in result.items():
+            for key, value in dict(result).items():
                 setattr(model_instance, key, value)
             results.append(model_instance)
         connection.commit()

@@ -1,6 +1,9 @@
+from abc import ABC
+
 from core.DbModel import DbModel
 
-class PowerUsageAppliance(DbModel):
+
+class Appliance(DbModel, ABC):
     def __init__(self):
         self.id = None
         self.name = None
