@@ -1,7 +1,7 @@
 from core.DbModel import DbModel
 
 
-class PowerUsageAppliance(DbModel):
+class Building(DbModel):
     def __init__(self):
         self.id = None
         self.name = None
