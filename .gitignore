@@ -4,3 +4,6 @@
 .env
 venv
 *.db
+migration.log
+PowerChainger
+identifier.sqlite
