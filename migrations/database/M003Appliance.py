@@ -1,15 +1,24 @@
-from core.Migration import Migration
+import pandas as pd
 
+from core.Migration import Migration
+from SQL.SQLQueries import ApplianceOperations as Query
 
 class M003Appliance(Migration):
     def up(self):
-        self.add_sql('''
-        CREATE TABLE Appliance (
-            `id`   BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-            `name` VARCHAR(255) NOT NULL
-            )
-        ''')
+        self.add_sql(Query.CREATE_APPLIANCE_TABLE)
 
     def down(self):
-        self.add_sql('DROP TABLE IF EXISTS Appliance')
-        
+        self.add_sql(Query.DROP_APPLIANCE_TABLE)
+
+    def exclude_columns(self):
+        return [
+            'main',
+            'time'
+        ]
+
+    def insert(self, csv_path):
+        data = pd.read_csv(csv_path, nrows=1).columns
+        for name in data:
+            if name in self.exclude_columns():
+                continue
+            self.add_sql(Query.INSERT_APPLIANCE.format(name))

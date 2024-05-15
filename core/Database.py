@@ -1,33 +1,14 @@
-import os
-
-import mysql.connector as mysql
 from dotenv import dotenv_values
-
+import sqlite3
+from SQL.SQLQueries import DatabaseOperations as Query
 
 class Database:
-    def __init__(self, create_db=False):
-        # Get env variables
-        if create_db:
-            self.create_db()
+    def __init__(self):
         self.connection = Database.connection()
-
-    def create_db(self):
-        connection = mysql.connect(
-            host=dotenv_values()['DB_HOST'],
-            user=dotenv_values()['DB_USERNAME'],
-            passwd=dotenv_values()['DB_PASSWORD']
-        )
-        connection.cursor().execute('CREATE DATABASE IF NOT EXISTS ' + dotenv_values()['DB_DATABASE'])
-        connection.close()
 
     @staticmethod
     def connection():
-        return mysql.connect(
-            host=dotenv_values()['DB_HOST'],
-            user=dotenv_values()['DB_USERNAME'],
-            passwd=dotenv_values()['DB_PASSWORD'],
-            database=dotenv_values()['DB_DATABASE']
-        )
+        return sqlite3.connect(dotenv_values()['DB_DATABASE'])
 
     @staticmethod
     def query(query):
@@ -41,11 +22,11 @@ class Database:
     @staticmethod
     def fetch_with(model, table_name, where=None):
         connection = Database.connection()
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor()
 
-        query = 'SELECT * FROM ' + table_name
+        query = Query.SELECT_ALL.format(table_name)
         if where:
-            query += ' WHERE ' + ' AND '.join([f"{k} = %({k})s" for k in where.keys()])
+            query = Query.SELECT_WHERE.format(table_name, ' AND '.join([f"{k} = %({k})s" for k in where.keys()]))
 
         print(query)
         cursor.execute(query, where)
@@ -57,3 +38,12 @@ class Database:
             results.append(model_instance)
         connection.commit()
         return results
+
+    @staticmethod
+    def get_next_id(table_name):
+        connection = Database.connection()
+        cursor = connection.cursor()
+        cursor.execute(Query.SELECT_MAX.format('id', table_name))
+        result = cursor.fetchone()
+        connection.commit()
+        return result[0] + 1 if result[0] else 1
