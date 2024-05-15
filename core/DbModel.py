@@ -21,7 +21,7 @@ class DbModel:
         pass
 
     @classmethod
-    def  fetch_with(cls, where: dict) -> list:
+    def fetch_with(cls, where: dict) -> list:
         result = Database.fetch_with(cls, cls.table_name(), where)
         return result
 
