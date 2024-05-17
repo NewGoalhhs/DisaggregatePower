@@ -53,11 +53,14 @@ class Migrations:
         migrations = []
 
         for migration_path in migration_paths:
-            if self.migration_has_run(migration_path):
-                continue
+            migration_path = migration_path.replace('/', '.').replace('\\', '.')[0:-3]
+            try:
+                if self.migration_has_run(migration_path):
+                    continue
+            except: # If the table doesn't exist
+                pass
             lb = LoadingBarHelper(migration_path, 1, 0)
 
-            migration_path = migration_path.replace('/', '.').replace('\\', '.')[0:-3]
             migration_file = migration_path.split('.')[-1]
 
             # import the class from the file
@@ -91,8 +94,11 @@ class Migrations:
                 migration.insert(file)
                 migration.migrate()
 
-        IsUsingAppliance(self.db).up()
-        IsUsingAppliance(self.db).insert()
+        isUsingAppliance = IsUsingAppliance(self.db)
+
+        isUsingAppliance.up()
+        isUsingAppliance.insert()
+        isUsingAppliance.migrate()
 
     def get_files(self):
         directory = 'Data/'

@@ -21,8 +21,7 @@ class M005PowerUsageAppliance(Migration):
         self.update_loading_bar(0)
 
         building = ("REDDUS_" + csv_path.split('_')[1].split('.')[0])
-        building_id = Database.query(BuildingQuery.GET_BUILDING_ID.format(building))[0][0]
-
+        building_id = Database.query(BuildingQuery.GET_BUILDING_ID.format(building))[0].get('id')
         df = pd.read_csv(csv_path).dropna()
         df['time'] = pd.to_datetime(df['time'])
 
@@ -35,11 +34,11 @@ class M005PowerUsageAppliance(Migration):
 
         appliance_ids = {}
 
-        for id, name in Database.query(DatabaseQuery.SELECT_ALL.format('Appliance')):
-            appliance_ids[name] = id
+        for appliance in Database.query(DatabaseQuery.SELECT_ALL.format('Appliance')):
+            appliance_ids[appliance.get('name')] = appliance.get('id')
 
-        for id, b_id, datetime, main in Database.query(DatabaseQuery.SELECT_ALL.format('PowerUsage')):
-            power_usage_ids[(b_id, datetime)] = id
+        for power_usage in Database.query(DatabaseQuery.SELECT_ALL.format('PowerUsage')):
+            power_usage_ids[(power_usage.get('building_id'), power_usage.get('datetime'))] = power_usage.get('id')
 
         self.set_loading_bar_status('Retrieving data')
         self.set_loading_bar_goal(len(list(df.iterrows())) * len(df.columns) * 2)

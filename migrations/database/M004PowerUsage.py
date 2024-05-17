@@ -16,7 +16,7 @@ class M004PowerUsage(Migration):
     def insert(self, csv_path):
         data_frames = []
         building = ("REDDUS_" + csv_path.split('_')[1].split('.')[0])
-        building_id = Database.query(BuildingQuery.GET_BUILDING_ID.format(building))[0][0]
+        building_id = Database.query(BuildingQuery.GET_BUILDING_ID.format(building))[0].get('id')
 
         df = pd.read_csv(csv_path).dropna()
 
