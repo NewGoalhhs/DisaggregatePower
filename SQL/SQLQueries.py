@@ -26,6 +26,7 @@ class BuildingOperations:
     INSERT_BUILDING = 'INSERT INTO Building (name) VALUES ("{}")'
     GET_BUILDING_ID = 'SELECT id FROM Building WHERE name = "{}"'
 
+
 class ApplianceOperations:
     CREATE_APPLIANCE_TABLE = '''
         CREATE TABLE Appliance (
@@ -54,6 +55,7 @@ class PowerUsageOperations:
     DROP_POWER_USAGE_TABLE = 'DROP TABLE PowerUsage'
     INSERT_POWER_USAGE = 'INSERT INTO PowerUsage (building_id, datetime, power_usage) VALUES ("{}", "{}", "{}")'
 
+
 class PowerUsageApplianceOperations:
     CREATE_POWER_USAGE_APPLIANCE_TABLE = '''
         CREATE TABLE PowerUsage_Appliance (
@@ -71,6 +73,7 @@ class PowerUsageApplianceOperations:
     '''
     DROP_POWER_USAGE_APPLIANCE_TABLE = 'DROP TABLE PowerUsage_Appliance'
     INSERT_POWER_USAGE_APPLIANCE = 'INSERT INTO PowerUsage_Appliance (PowerUsage_id, Appliance_id, appliance_power) VALUES ("{}", "{}", "{}")'
+
 
 class IsUsingApplianceOperations:
     CREATE_IS_USING_APPLIANCE_TABLE = '''

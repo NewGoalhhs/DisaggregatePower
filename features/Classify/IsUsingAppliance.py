@@ -1,1 +1,0 @@
-# TODO: Implement a feature that checks if the user is using an appliance and defines that in the database.
