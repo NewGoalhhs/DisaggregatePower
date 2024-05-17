@@ -61,5 +61,5 @@ class Migration:
     def down(self):
         pass
 
-    def insert(self, csv_path):
+    def insert(self, *args, **kwargs):
         pass

@@ -2,6 +2,29 @@ class DatabaseOperations:
     SELECT_ALL = "SELECT * FROM {}"
     SELECT_WHERE = "SELECT * FROM {} WHERE {}"
     SELECT_MAX = "SELECT MAX({}) FROM {}"
+    SELECT_APPLIANCE_THRESHOLD = """
+        SELECT appliance_power
+        FROM (
+            SELECT appliance_power, 
+                   COUNT(*) OVER() as total_rows, 
+                   ROW_NUMBER() OVER(ORDER BY appliance_power) as row_number
+            FROM PowerUsage_Appliance
+            WHERE appliance_power > 0 AND Appliance_id = {}
+        ) 
+        WHERE row_number >= total_rows * 0.25
+        ORDER BY appliance_power
+        LIMIT 1
+        """
+
+    SELECT_POWER_USAGE_APPLIANCE_FOR_BUILDING = """
+        SELECT PowerUsage_id, Appliance_id, appliance_power
+        FROM PowerUsage_Appliance
+        WHERE PowerUsage_id IN (
+            SELECT id
+            FROM PowerUsage
+            WHERE building_id = {}
+        )
+        """
 
 
 class MigrationOperations:

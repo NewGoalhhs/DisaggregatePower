@@ -1,6 +1,6 @@
 import os
 
-import pandas as pd
+from features.Classify.IsUsingAppliance import IsUsingAppliance
 
 from core.Database import Database
 from os import listdir
@@ -88,6 +88,9 @@ class Migrations:
                 migration.reset_queries()
                 migration.insert(file)
                 migration.migrate()
+
+        IsUsingAppliance(self.db).up()
+        IsUsingAppliance(self.db).insert()
 
     def get_files(self):
         directory = 'Data/'
