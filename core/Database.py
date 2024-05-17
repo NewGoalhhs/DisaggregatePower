@@ -13,11 +13,12 @@ class Database:
     @staticmethod
     def query(query):
         connection = Database.connection()
+        connection.row_factory = sqlite3.Row
         cursor = connection.cursor()
         cursor.execute(query)
         results = cursor.fetchall()
         connection.commit()
-        return results
+        return [dict(result) for result in results]
 
     @staticmethod
     def fetch_with(model, table_name, where=None):

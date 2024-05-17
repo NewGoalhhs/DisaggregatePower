@@ -7,7 +7,7 @@ from os import listdir
 from os.path import isfile, join
 
 from helper.LoadingBarHelper import LoadingBarHelper
-
+from SQL.SQLQueries import MigrationOperations as Query
 
 class Migrations:
     def __init__(self):
@@ -53,6 +53,8 @@ class Migrations:
         migrations = []
 
         for migration_path in migration_paths:
+            if self.migration_has_run(migration_path):
+                continue
             lb = LoadingBarHelper(migration_path, 1, 0)
 
             migration_path = migration_path.replace('/', '.').replace('\\', '.')[0:-3]
@@ -80,9 +82,9 @@ class Migrations:
             lb.finish()
 
             migrations.append(migration)
+            self.insert_migration(migration_path)
 
         for file in self.get_files():
-            print()
             for migration in migrations:
                 migration.add_loading_bar(LoadingBarHelper(file + ': ' + migration.__class__.__name__, 1, 0))
                 migration.reset_queries()
@@ -97,3 +99,9 @@ class Migrations:
 
         # load all the files in the directory
         return [join(directory, f) for f in listdir(directory) if isfile(join(directory, f))]
+
+    def insert_migration(self, migration_path):
+        self.db.query(Query.INSERT_MIGRATION.format(migration_path))
+
+    def migration_has_run(self, migration_path):
+        return bool(self.db.query(Query.SELECT_MIGRATION.format(migration_path)))
