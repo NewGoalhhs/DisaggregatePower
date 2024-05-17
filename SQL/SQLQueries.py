@@ -71,3 +71,20 @@ class PowerUsageApplianceOperations:
     '''
     DROP_POWER_USAGE_APPLIANCE_TABLE = 'DROP TABLE PowerUsage_Appliance'
     INSERT_POWER_USAGE_APPLIANCE = 'INSERT INTO PowerUsage_Appliance (PowerUsage_id, Appliance_id, appliance_power) VALUES ("{}", "{}", "{}")'
+
+class IsUsingApplianceOperations:
+    CREATE_IS_USING_APPLIANCE_TABLE = '''
+        CREATE TABLE IsUsingAppliance (
+            id             INTEGER PRIMARY KEY AUTOINCREMENT,
+            PowerUsage_id   INTEGER NOT NULL,
+            Appliance_id    INTEGER NOT NULL,
+            FOREIGN KEY (PowerUsage_id) REFERENCES PowerUsage (id),
+            FOREIGN KEY (Appliance_id) REFERENCES Appliance (id)
+            )
+        '''
+    CREATE_IS_USING_APPLIANCE_INDEX = '''
+        CREATE UNIQUE INDEX isusingappliance_combination_unique ON
+        IsUsingAppliance(PowerUsage_id, Appliance_id)
+    '''
+    DROP_IS_USING_APPLIANCE_TABLE = 'DROP TABLE IsUsingAppliance'
+    INSERT_IS_USING_APPLIANCE = 'INSERT INTO IsUsingAppliance (PowerUsage_id, Appliance_id) VALUES ("{}", "{}")'
