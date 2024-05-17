@@ -7,4 +7,5 @@ venv
 *.db.journal
 migration.log
 PowerChainger
+PowerChainger-journal
 identifier.sqlite
