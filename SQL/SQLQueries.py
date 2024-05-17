@@ -13,6 +13,8 @@ class MigrationOperations:
             )
         '''
     DROP_MIGRATIONS_TABLE = 'DROP TABLE Migrations'
+    INSERT_MIGRATION = 'INSERT INTO Migrations (migration_name) VALUES ("{}")'
+    SELECT_MIGRATION = "SELECT * FROM Migrations WHERE migration_name = '{}'"
 
 
 class BuildingOperations:
