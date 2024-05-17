@@ -6,6 +6,7 @@ from SQL.SQLQueries import DatabaseOperations as DbQuery
 class SyntheticBuilding:
     def __init__(self):
         id = Database.get_next_id(Building.table_name())
+        self.id = id
         self.name = 'SYNTH_' + str(id)
 
     def save(self):
