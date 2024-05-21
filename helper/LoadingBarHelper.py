@@ -1,3 +1,6 @@
+import math
+import time
+
 from helper.BasePrintHelper import BasePrintHelper
 from helper.IntervalHelper import IntervalHelper
 
@@ -11,6 +14,8 @@ class LoadingBarHelper(BasePrintHelper):
         self.current = current
         self.start = start
         self.length = length
+        self.previous_operations = 0
+        self.start_time = time.time()
         self.primary_color = self.get_color_code(primary_color)
         self.secondary_color = self.get_color_code(secondary_color)
         self.interval = IntervalHelper(self.tickrate, self.print)
@@ -44,8 +49,27 @@ class LoadingBarHelper(BasePrintHelper):
     def update(self, current):
         self.current += current
 
+    def predict_total_time(self):
+        elapsed_time = time.time() - self.start_time
+        if elapsed_time > 0:
+            speed = self.current / elapsed_time
+            if speed > 0:
+                remaining_time = (self.goal - self.current) / speed
+                return self.format_time(remaining_time)
+        return 'Calculating...'
+
+    def format_time(self, seconds):
+        hours = math.floor(seconds / 3600)
+        seconds = seconds % 3600
+        minutes = math.floor(seconds / 60)
+        seconds = round(seconds % 60, 2)
+        hours_str = str(hours) + 'h ' if hours > 0 else ''
+        minutes_str = str(minutes) + 'm ' if minutes > 0 else ''
+        seconds_str = str(seconds) + 's' if seconds > 0 else ''
+        return hours_str + minutes_str + seconds_str
+
     def print(self):
-        print('\r' + self.__str__(), end='')
+        print('\r' + self.__str__() + ' ' + self.predict_total_time(), end='')
 
     def finish(self):
         self.current = self.goal
