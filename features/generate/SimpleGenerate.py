@@ -1,3 +1,5 @@
+import pandas as pd
+
 from core.Generate import Generate
 from datetime import datetime
 from features.generate.synthetic.SyntheticBuilding import SyntheticBuilding
@@ -13,9 +15,10 @@ class SimpleGenerate(Generate):
     def __init__(self):
         super().__init__()
         self.db = Database()
-        self.lb = LoadingBarHelper('Synthetic data - ', 100, 0)
+        self.lb = None
 
     def run(self, p):
+        # self.lb = LoadingBarHelper('Synthetic data - ', 100, 0)
         building = SyntheticBuilding()
         # building.save()
 
@@ -30,53 +33,77 @@ class SimpleGenerate(Generate):
         appliances = random.sample(appliances, random.randint(int(len(appliances) / 2), len(appliances)))
 
         # Predict the amount of operations required for the loading bar
-        self.lb.set_goal(int((end_time - start_time).total_seconds()) * len(appliances))
+        # self.lb.set_goal(int((end_time - start_time).total_seconds()) * len(appliances))
 
-        while current_time <= end_time:
-            random_time_gap = random.randint(3, 10)
-            current_time = current_time + timedelta(seconds=random_time_gap)
-            # TODO: Maak eerst power data voor appliances en daarna main power. Main power zou alle appliances moeten bevatten + een beetje extra.
-            power_usage_appliances = []
-            self.lb.set_status('Gathering data')
-            for appliance in appliances:
-                power_usages = self.get_random_power_usage_appliance_from_appliance(appliance['id'])
-                self.lb.update(random_time_gap)
-                # Generate power data for appliance
-                # Generate power data for appliance
-                # {'id': 1, 'name': 'bathroom_gfi'}
-                # Expected usage:
-                # Weekday: 00:00 - 06:00: 0.1
-                # Weekday: 06:00 - 12:00: 0.2
-                # Weekday: 12:00 - 18:00: 0.3
-                # Weekday: 18:00 - 00:00: 0.4
+        # {'id': 1, 'name': 'bathroom_gfi'}
+        appliance_power_usages = {
+            1: {
+                'weekday': {
+                    '00:00-00:30': 0.0-0.1,
+                },
+                'weekend': {
 
-                # Weekend: 00:00 - 06:00: 0.1
-                # Weekend: 06:00 - 12:00: 0.2
-                # Weekend: 12:00 - 18:00: 0.3
-                # Weekend: 18:00 - 00:00: 0.4
+                }
+            },
+            2: {
 
-                #TODO: Create a dictionary: {1: {weekday: {00:00-00:30: 0.1, 00:30-01:00: 0.2, etc...}}, 2: {etc...}, etc...}
+            }
+        }
 
-                # {'id': 2, 'name': 'dishwaser'}
-                # {'id': 3, 'name': 'electric_heat'}
-                # {'id': 4, 'name': 'kitchen_outlets'}
-                # {'id': 5, 'name': 'lighting'}
-                # {'id': 6, 'name': 'microwave'}
-                # {'id': 7, 'name': 'oven'}
-                # {'id': 8, 'name': 'refrigerator'}
-                # {'id': 9, 'name': 'stove'}
-                # {'id': 10, 'name': 'washer_dryer'}
-                # {'id': 11, 'name': 'disposal'}
-                # {'id': 12, 'name': 'electronics'}
-                # {'id': 13, 'name': 'furance'}
-                # {'id': 14, 'name': 'outlets_unknown'}
-                # {'id': 15, 'name': 'smoke_alarms'}
-                # {'id': 16, 'name': 'air_conditioning'}
-                # {'id': 17, 'name': 'miscellaeneous'}
-                # {'id': 18, 'name': 'outdoor_outlets'}
-                # {'id': 19, 'name': 'subpanel'}
-                pass
-        self.lb.finish()
+        for appliance in appliances:
+            powerUsage = self.get_power_usage_appliance_from_appliance(appliance['id'])
+            # Create dataframe
+            df = pd.DataFrame(powerUsage)
+            # Print the dataframe avg, mean, min, max, 25%,etc
+            print(df.describe())
+
+        # while current_time < end_time:
+        #     random_time_gap = random.randint(3, 10)
+        #     current_time = current_time + timedelta(seconds=random_time_gap)
+        #     # TODO: Maak eerst power data voor appliances en daarna main power. Main power zou alle appliances moeten bevatten + een beetje extra.
+        #
+        #     power_usage_appliances = []
+        #     self.lb.set_status('Gathering data')
+        #     for appliance in appliances:
+        #         # power_usages = self.get_random_power_usage_appliance_from_appliance(appliance['id'])
+        #         self.lb.update(random_time_gap)
+        #         # Generate power data for appliance
+        #         # {'id': 1, 'name': 'bathroom_gfi'}
+        #         # Expected usage:
+        #         # Weekday: 00:00 - 06:00: 0.1-0.2
+        #         # Weekday: 06:00 - 12:00: 0.2-0.7
+        #         # Weekday: 12:00 - 18:00: 0.3
+        #         # Weekday: 18:00 - 00:00: 0.4
+        #
+        #         # Weekend: 00:00 - 06:00: 0.1
+        #         # Weekend: 06:00 - 12:00: 0.2
+        #         # Weekend: 12:00 - 18:00: 0.3
+        #         # Weekend: 18:00 - 00:00: 0.4
+        #
+        #
+        #
+        #         #TODO: Create a dictionary: {1: {weekday: {00:00-00:30: 0.1, 00:30-01:00: 0.2, etc...}}, 2: {etc...}, etc...}
+        #
+        #         # {'id': 2, 'name': 'dishwaser'}
+        #         # {'id': 3, 'name': 'electric_heat'}
+        #         # {'id': 4, 'name': 'kitchen_outlets'}
+        #         # {'id': 5, 'name': 'lighting'}
+        #         # {'id': 6, 'name': 'microwave'}
+        #         # {'id': 7, 'name': 'oven'}
+        #         # {'id': 8, 'name': 'refrigerator'}
+        #         # {'id': 9, 'name': 'stove'}
+        #         # {'id': 10, 'name': 'washer_dryer'}
+        #         # {'id': 11, 'name': 'disposal'}
+        #         # {'id': 12, 'name': 'electronics'}
+        #         # {'id': 13, 'name': 'furance'}
+        #         # {'id': 14, 'name': 'outlets_unknown'}
+        #         # {'id': 15, 'name': 'smoke_alarms'}
+        #         # {'id': 16, 'name': 'air_conditioning'}
+        #         # {'id': 17, 'name': 'miscellaeneous'}
+        #         # {'id': 18, 'name': 'outdoor_outlets'}
+        #         # {'id': 19, 'name': 'subpanel'}
+
+        # self.lb.finish()
 
     def get_random_power_usage_appliance_from_appliance(self, appliance_id):
         building_id = self.get_random_building_id_with_appliance(appliance_id)
@@ -95,3 +122,6 @@ class SimpleGenerate(Generate):
         with connection.cursor() as cursor:
             cursor.executemany(PowerUsageApplianceQuery.INSERT_POWER_USAGE_APPLIANCE, power_usages)
         connection.commit()
+
+    def get_power_usage_appliance_from_appliance(self, appliance_id):
+        return self.db.query(Query.SELECT_POWER_USAGE_APPLIANCE_FOR_APPLIANCE.format(appliance_id))
