@@ -9,3 +9,4 @@ migration.log
 PowerChainger
 PowerChainger-journal
 identifier.sqlite
+*.pkl
