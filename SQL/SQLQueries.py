@@ -26,6 +26,16 @@ class DatabaseOperations:
         )
         """
 
+    SELECT_BUILDING_IDS_WITH_APPLIANCE = """
+        SELECT DISTINCT building_id
+        FROM PowerUsage
+        WHERE id IN (
+            SELECT PowerUsage_id
+            FROM PowerUsage_Appliance
+            WHERE Appliance_id = {}
+        )
+        """
+
 
 class MigrationOperations:
     CREATE_MIGRATIONS_TABLE = '''
