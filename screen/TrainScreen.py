@@ -19,6 +19,8 @@ class TrainScreen(Screen):
                 if not entry.is_file():
                     continue
 
+                # TODO: implement train screen
+
                 module = __import__('MachineLearning.' + entry.name.split('.')[0], fromlist=[entry.name.split('.')[0]])
                 class_ = getattr(module, entry.name.split('.')[0])
                 instance = class_()
