@@ -1,6 +1,9 @@
 from dotenv import dotenv_values
 import sqlite3
+
+import glob
 from SQL.SQLQueries import DatabaseOperations as Query
+
 
 class Database:
     def __init__(self):
@@ -8,7 +11,8 @@ class Database:
 
     @staticmethod
     def connection():
-        return sqlite3.connect(dotenv_values()['DB_DATABASE'])
+        database_name = glob.__ROOT__ + '/' + dotenv_values()['DB_DATABASE']
+        return sqlite3.connect(database_name)
 
     @staticmethod
     def query(query):
