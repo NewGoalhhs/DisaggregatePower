@@ -1,6 +1,6 @@
 class DatabaseOperations:
     SELECT_ALL = "SELECT * FROM {}"
-    SELECT_WHERE = "SELECT * FROM {} WHERE {}"
+    SELECT_WHERE = "SELECT * FROM {} WHERE {} = {}"
     SELECT_MAX = "SELECT MAX({}) FROM {}"
     SELECT_APPLIANCE_THRESHOLD = """
         SELECT appliance_power
@@ -35,6 +35,18 @@ class DatabaseOperations:
             WHERE Appliance_id = {}
         )
         """
+
+    SELECT_POWER_USAGE_APPLIANCE_FOR_APPLIANCE = """
+        SELECT PowerUsage_Appliance.appliance_power
+        FROM PowerUsage_Appliance
+        JOIN PowerUsage ON PowerUsage_Appliance.PowerUsage_id = PowerUsage.id
+        WHERE Appliance_id = {}
+        AND PowerUsage.timestamp BETWEEN '{}' AND '{}'
+    """
+
+    SELECT_ALL_JOIN = """
+        SELECT * FROM {} JOIN {} ON {} = {}
+    """
 
 
 class MigrationOperations:
