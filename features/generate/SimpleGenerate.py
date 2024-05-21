@@ -5,11 +5,15 @@ from core.Database import Database
 from datetime import timedelta
 import random
 from SQL.SQLQueries import DatabaseOperations as Query
+from SQL.SQLQueries import PowerUsageApplianceOperations as PowerUsageApplianceQuery
+from helper.LoadingBarHelper import LoadingBarHelper
+
 
 class SimpleGenerate(Generate):
     def __init__(self):
         super().__init__()
         self.db = Database()
+        self.lb = LoadingBarHelper('Synthetic data - ', 100, 0)
 
     def run(self, p):
         building = SyntheticBuilding()
@@ -21,10 +25,24 @@ class SimpleGenerate(Generate):
 
         current_time = start_time
 
+        # Get random amount of appliances to generate data for between half and the full amount of appliances
+        appliances = self.db.query(Query.SELECT_ALL.format('appliance'))
+        appliances = random.sample(appliances, random.randint(int(len(appliances) / 2), len(appliances)))
+
+        # Predict the amount of operations required for the loading bar
+        self.lb.set_goal(int((end_time - start_time).total_seconds()) * len(appliances))
+
         while current_time <= end_time:
-            current_time = current_time + timedelta(seconds=random.randint(3, 10))
+            random_time_gap = random.randint(3, 10)
+            current_time = current_time + timedelta(seconds=random_time_gap)
             # TODO: Maak eerst power data voor appliances en daarna main power. Main power zou alle appliances moeten bevatten + een beetje extra.
-            for appliance in Database.query(Query.SELECT_ALL.format('appliance')):
+            power_usage_appliances = []
+            self.lb.set_status('Gathering data')
+            for appliance in appliances:
+                power_usages = self.get_random_power_usage_appliance_from_appliance(appliance['id'])
+                self.lb.update(random_time_gap)
+                # Generate power data for appliance
+                # Generate power data for appliance
                 # {'id': 1, 'name': 'bathroom_gfi'}
                 # Expected usage:
                 # Weekday: 00:00 - 06:00: 0.1
@@ -58,3 +76,22 @@ class SimpleGenerate(Generate):
                 # {'id': 18, 'name': 'outdoor_outlets'}
                 # {'id': 19, 'name': 'subpanel'}
                 pass
+        self.lb.finish()
+
+    def get_random_power_usage_appliance_from_appliance(self, appliance_id):
+        building_id = self.get_random_building_id_with_appliance(appliance_id)
+        if building_id:
+            power_usages = self.db.query(Query.SELECT_POWER_USAGE_APPLIANCE_FOR_BUILDING.format(building_id))
+            return power_usages
+        return []
+
+    def get_random_building_id_with_appliance(self, appliance_id):
+        result = self.db.query(Query.SELECT_BUILDING_IDS_WITH_APPLIANCE.format(appliance_id))
+        return random.choice(result)['building_id']
+
+    def insert_power_usage_appliance(self, power_usages):
+        connection = self.db.connection()
+        connection.fast_executemany = True
+        with connection.cursor() as cursor:
+            cursor.executemany(PowerUsageApplianceQuery.INSERT_POWER_USAGE_APPLIANCE, power_usages)
+        connection.commit()
