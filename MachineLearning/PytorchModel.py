@@ -35,7 +35,7 @@ class PytorchModel(MachineLearningModel):
 
     def preprocess_data(self, data):
         # Convert data to PyTorch tensors
-        features = torch.tensor([data['timestamp'], data['power_usage']], dtype=torch.float32)
+        features = torch.tensor([[data['timestamp'][i], data['power_usage'][i]] for i in range(len(data['timestamp']))], dtype=torch.float32)
         labels = torch.tensor(data['appliance_in_use'], dtype=torch.float32)
 
         # Move data to the device
@@ -57,7 +57,7 @@ class PytorchModel(MachineLearningModel):
     def load_model(self, path):
         self.model.load_state_dict(torch.load(path))
 
-    def train(self, data, epochs=1000):
+    def train(self, data, epochs=100):
         features, labels = self.preprocess_data(data)
         # Training loop
         for epoch in range(epochs):
@@ -80,7 +80,7 @@ class PytorchModel(MachineLearningModel):
 
     def predict(self, data):
         # Convert data to PyTorch tensors
-        features = torch.tensor([data['timestamp'], data['power_usage']], dtype=torch.float32).to(self.device)
+        features = torch.tensor([[data['timestamp'][i], data['power_usage'][i]] for i in range(len(data['timestamp']))], dtype=torch.float32).to(self.device)
         # Reshape features to have shape (batch_size, input_size)
         features = features.view(-1, self.model.layer1.in_features)
 
