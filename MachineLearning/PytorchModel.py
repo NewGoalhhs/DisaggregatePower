@@ -27,7 +27,7 @@ class BinaryClassifier(nn.Module):
 
 
 class PytorchModel(MachineLearningModel):
-    def __init__(self, input_size=1, hidden_size=10):
+    def __init__(self, input_size=2, hidden_size=10):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.model = BinaryClassifier(input_size, hidden_size).to(self.device)
         self.criterion = nn.BCELoss()
@@ -35,7 +35,7 @@ class PytorchModel(MachineLearningModel):
 
     def preprocess_data(self, data):
         # Convert data to PyTorch tensors
-        features = torch.tensor(data['power_usage'], dtype=torch.float32)
+        features = torch.tensor([data['timestamp'], data['power_usage']], dtype=torch.float32)
         labels = torch.tensor(data['appliance_in_use'], dtype=torch.float32)
 
         # Move data to the device
@@ -79,9 +79,17 @@ class PytorchModel(MachineLearningModel):
             print(f'Epoch {epoch + 1}/{epochs}, Loss: {loss.item()}')
 
     def predict(self, data):
+        # Convert data to PyTorch tensors
+        features = torch.tensor([data['timestamp'], data['power_usage']], dtype=torch.float32).to(self.device)
+        # Reshape features to have shape (batch_size, input_size)
+        features = features.view(-1, self.model.layer1.in_features)
+
         with torch.no_grad():
-            outputs = self.model(data)
+            outputs = self.model(features)
             predictions = (outputs > 0.5).float()
+        # Convert predictions to a list
+        predictions = predictions.cpu().numpy().tolist()
+        print(predictions)
         return predictions
 
     def get_score(self, y, y_pred):
