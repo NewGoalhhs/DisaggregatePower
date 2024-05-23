@@ -34,8 +34,9 @@ class PytorchModel(MachineLearningModel):
         self.optimizer = optim.Adam(self.model.parameters())
 
     def preprocess_data(self, data):
+        feature_data = [[data['timestamp'][i], data['power_usage'][i]] for i in range(len(data))]
         # Convert data to PyTorch tensors
-        features = torch.tensor([[data['timestamp'][i], data['power_usage'][i]] for i in range(len(data['timestamp']))], dtype=torch.float32)
+        features = torch.tensor(feature_data, dtype=torch.float32)
         labels = torch.tensor(data['appliance_in_use'], dtype=torch.float32)
 
         # Move data to the device
@@ -57,7 +58,7 @@ class PytorchModel(MachineLearningModel):
     def load_model(self, path):
         self.model.load_state_dict(torch.load(path))
 
-    def train(self, data, epochs=100):
+    def train(self, data, epochs=10):
         features, labels = self.preprocess_data(data)
         # Training loop
         for epoch in range(epochs):
@@ -79,8 +80,15 @@ class PytorchModel(MachineLearningModel):
             print(f'Epoch {epoch + 1}/{epochs}, Loss: {loss.item()}')
 
     def predict(self, data):
+        # Check that 'timestamp' and 'power_usage' are both 1D lists
+        if not all(isinstance(i, (int, float)) for i in data['timestamp']):
+            raise ValueError("'timestamp' must be a 1D list of numbers")
+        if not all(isinstance(i, (int, float)) for i in data['power_usage']):
+            raise ValueError("'power_usage' must be a 1D list of numbers")
+
+        feature_data = [[data['timestamp'][i], data['power_usage'][i]] for i in range(len(data))]
         # Convert data to PyTorch tensors
-        features = torch.tensor([[data['timestamp'][i], data['power_usage'][i]] for i in range(len(data['timestamp']))], dtype=torch.float32).to(self.device)
+        features = torch.tensor(feature_data, dtype=torch.float32).to(self.device)
         # Reshape features to have shape (batch_size, input_size)
         features = features.view(-1, self.model.layer1.in_features)
 
