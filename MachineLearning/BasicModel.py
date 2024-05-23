@@ -6,12 +6,13 @@ import numpy as np
 import joblib
 import matplotlib.pyplot as plt
 
-
-import glob
+import app
 from core.Database import Database
 from SQL.SQLQueries import DatabaseOperations as Query
+from core.MachineLearningModel import MachineLearningModel
 
-class BasicModel:
+
+class BasicModel(MachineLearningModel):
     def __init__(self, model=None):
         if model is None:
             self.model = self.get_model()
@@ -98,28 +99,6 @@ class BasicModel:
 # Example usage
 if __name__ == "__main__":
     # Sample data preparation (this should be replaced with your actual data loading)
-    power_usage = Database.query(Query.SELECT_ALL.format('PowerUsage'))
-    microwave_id = 6
-    appliance_in_use = Database.query(Query.SELECT_WHERE.format('IsUsingAppliance', 'Appliance_id', microwave_id))
-    power_usage = pd.DataFrame(power_usage)
-    appliance_in_use = pd.DataFrame(appliance_in_use)
-    appliance_power_usage_ids = set(appliance_in_use['PowerUsage_id'])
-
-    matches = power_usage['id'].isin(appliance_power_usage_ids)
-    power_usage['IsUsingAppliance'] = matches.astype(int)
-
-    data = {
-        "timestamp": power_usage['datetime'],
-        "power_usage": power_usage['power_usage'],
-        "appliance_in_use": power_usage['IsUsingAppliance']
-    }
-    #
-    # print(len(data['timestamp']), len(data['power_usage']), len(data['appliance_in_use']))
-    #
-    model = BasicModel()
-    model.train(data)
-    model_path = glob.__ROOT__ + "/MachineLearning/models/microwave_model.pkl"
-    model.save_model(glob.__ROOT__ + "/MachineLearning/models/microwave_model.pkl")
 
 
     # Load the model from the model path
@@ -127,32 +106,32 @@ if __name__ == "__main__":
     # Example prediction
     # TODO: Data uit de database halen
     example_power_usages_without_microwave = [
-    341.03,
-    342.36,
-    342.52,
-    342.07,
-    341.77,
-    341.66,
-    341.84000000000003,
-    340.9,
-    345.2,
-    341.99,
-    342.34000000000003,
-    346.46,
-    340.33,
-    345.61,
-    345.29,
-    345.34,
-    343.98,
-    344.97,
-    344.64,
-    343.07,
-    344.46,
-    346.85,
-    346.63,
-    345.75,
-    346.23
-]
+        341.03,
+        342.36,
+        342.52,
+        342.07,
+        341.77,
+        341.66,
+        341.84000000000003,
+        340.9,
+        345.2,
+        341.99,
+        342.34000000000003,
+        346.46,
+        340.33,
+        345.61,
+        345.29,
+        345.34,
+        343.98,
+        344.97,
+        344.64,
+        343.07,
+        344.46,
+        346.85,
+        346.63,
+        345.75,
+        346.23
+    ]
 
     timestamp = '2011-04-18 13:23:47'
     print(f"Appliance in use: {model.predict(example_power_usages_without_microwave, timestamp)}")
