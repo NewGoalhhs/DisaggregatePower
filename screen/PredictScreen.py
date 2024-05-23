@@ -9,11 +9,11 @@ class PredictScreen(Screen):
     def screen(self, p):
         p.reset_lines()
         p.open_options()
-        for option in self.get_generate_options():
+        for option in self.get_generate_options(p):
             p.add_option(option['key'], option['text'], option['function'])
         p.choose_option()
 
-    def get_generate_options(self) -> list:
+    def get_generate_options(self, p) -> list:
         # Return a list of indexes and generate class options from features/generate
         with os.scandir('MachineLearning/models') as entries:
             options = []
@@ -23,7 +23,7 @@ class PredictScreen(Screen):
 
                 model = entry.name.split('.')[0]
 
-                instance = PredictModel(model)
+                instance = PredictModel(entry)
                 options.append({
                     'key': str(index + 1),
                     'text': model,

@@ -1,6 +1,7 @@
 import os
 
 from core.Screen import Screen
+from features.train.TrainModel import TrainModel
 
 
 class TrainScreen(Screen):
@@ -19,15 +20,17 @@ class TrainScreen(Screen):
                 if not entry.is_file():
                     continue
 
-                # TODO: implement train screen
+                name = entry.name.split('.')[0]
+                module = __import__('MachineLearning.' + name,
+                                    fromlist=[name])
+                class_ = getattr(module, name)
+                model_instance = class_()
 
-                module = __import__('MachineLearning.' + entry.name.split('.')[0], fromlist=[entry.name.split('.')[0]])
-                class_ = getattr(module, entry.name.split('.')[0])
-                instance = class_()
+                instance = TrainModel(model_instance)
                 options.append({
                     'key': str(index + 1),
-                    'text': entry.name,
-                    'function': instance
+                    'text': name,
+                    'function': instance.train
                 })
 
             return options
