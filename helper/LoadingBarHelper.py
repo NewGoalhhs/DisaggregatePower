@@ -46,7 +46,7 @@ class LoadingBarHelper(BasePrintHelper):
     def set_current(self, current):
         self.current = current
 
-    def update(self, current):
+    def update(self, current=1):
         self.current += current
 
     def predict_total_time(self):

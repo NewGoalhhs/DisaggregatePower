@@ -1,3 +1,4 @@
+import inspect
 import os
 
 from core.Generate import Generate
@@ -33,30 +34,33 @@ class PrintHelper(BasePrintHelper):
     def add_option(self, key: str, text: str, function: callable):
         print(self.get_color_code('reset') + f" [" + self.secondary_color + f"{key}" + self.get_color_code(
             'reset') + f"] " + self.primary_color + text)
-        self.options[key] = {
+        self.options[str(key)] = {
             'text': text,
             'function': function
         }
 
-    def choose_option(self):
+    def choose_option(self, text: str = 'Enter an option: '):
         print()
         print(self.secondary_color + '-' * 50)
         print(self.get_color_code('reset'))
         # result = self.request_input('Enter an option: ', autocomplete=list(self.options.keys()))
-        result = self.request_input('Enter an option: ')
+        result = self.request_input(text)
 
-        if result in self.options:
+        if result in self.options.keys():
             function = self.options[result]['function']
             if function is None:
                 return
-            elif function == 'exit':
-                exit()
             elif isinstance(function, Screen):
                 return function.screen(p=self)
             elif isinstance(function, Generate):
                 return function.run(p=self)
-            elif function is callable:
+            elif (function is callable or
+                  function is classmethod or
+                  function is staticmethod or
+                  inspect.ismethod(function)):
                 return function(p=self)
+            else:
+                return function
 
         else:
             self.print_line('Invalid option')
