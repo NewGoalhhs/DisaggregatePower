@@ -73,6 +73,8 @@ class PrintHelper(BasePrintHelper):
         return input(text)
 
     def get_loading_bar(self, text, goal, length=50) -> LoadingBarHelper:
-        helper = LoadingBarHelper(text, goal, length, primary_color=self.primary_color, secondary_color=self.secondary_color)
+        helper = LoadingBarHelper(text=text, goal=goal, length=length)
+        helper.primary_color = self.primary_color
+        helper.secondary_color = self.secondary_color
         helper.print()
         return helper

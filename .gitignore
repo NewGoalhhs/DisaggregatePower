@@ -10,3 +10,4 @@ PowerChainger
 PowerChainger-journal
 identifier.sqlite
 *.pkl
+*.pt

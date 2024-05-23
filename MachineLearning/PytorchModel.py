@@ -1,3 +1,5 @@
+import os
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -20,50 +22,50 @@ class BinaryClassifier(nn.Module):
         x = torch.relu(self.layer2(x))
         x = torch.relu(self.layer3(x))
         x = torch.relu(self.layer4(x))
-        x = self.sigmoid(self.layer2(x))
+        x = self.sigmoid(self.layer5(x))
         return x
 
 
 class PytorchModel(MachineLearningModel):
     def __init__(self, input_size=1, hidden_size=10):
-        self.model = BinaryClassifier(input_size, hidden_size)
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.model = BinaryClassifier(input_size, hidden_size).to(self.device)
         self.criterion = nn.BCELoss()
         self.optimizer = optim.Adam(self.model.parameters())
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     def preprocess_data(self, data):
-        # Implement your data preprocessing here
-        pass
+        # Convert data to PyTorch tensors
+        features = torch.tensor(data['power_usage'], dtype=torch.float32)
+        labels = torch.tensor(data['appliance_in_use'], dtype=torch.float32)
+
+        # Move data to the device
+        features = features.to(self.device)
+        labels = labels.to(self.device)
+
+        # Reshape features to have shape (batch_size, input_size)
+        features = features.view(-1, self.model.layer1.in_features)
+
+        return features, labels
+
+    def file_extension(self):
+        return 'pt'
 
     def save_model(self, path):
+        os.makedirs(os.path.dirname(path), exist_ok=True)
         torch.save(self.model.state_dict(), path)
 
     def load_model(self, path):
         self.model.load_state_dict(torch.load(path))
 
-    def train(self, data, epochs=100):
-        print('Training model...')
-        print(data)
-        labels = list(data.keys())
-        data = list(data.values())
-
-        print('Labels: ')
-        print(labels)
-        print('Data: ')
-        print(data)
-
-        # Convert data to PyTorch tensors
-        data = torch.tensor(data, dtype=torch.float32)
-        labels = torch.tensor(labels, dtype=torch.float32)
-
-        # Move data to the device
-        data = data.to(self.device)
-        labels = labels.to(self.device)
-
+    def train(self, data, epochs=1000):
+        features, labels = self.preprocess_data(data)
         # Training loop
         for epoch in range(epochs):
             # Forward pass
-            outputs = self.model(data)
+            outputs = self.model(features)
+
+            # Remove dimensions of size 1 from outputs
+            outputs = outputs.squeeze()
 
             # Compute loss
             loss = self.criterion(outputs, labels)
@@ -81,3 +83,9 @@ class PytorchModel(MachineLearningModel):
             outputs = self.model(data)
             predictions = (outputs > 0.5).float()
         return predictions
+
+    def get_score(self, y, y_pred):
+        concat = []
+        for i in range(len(y)):
+            concat.append([y[i], y_pred[i]])
+        return [y == y_pred for y, y_pred in concat].count(True) / len(concat)
