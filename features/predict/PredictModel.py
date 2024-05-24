@@ -60,9 +60,9 @@ class PredictModel:
 
     def predict(self, p):
         year, month, day, hour, minute, second, power_usage = self.prepare_predict(p)
-        timestamp = self.get_timestamp(year, month, day, hour, minute, second).timestamp()
+        datetime = f"{year}-{month:02d}-{day:02d} {hour:02d}:{minute:02d}:{second:02d}"
         data = {
-            "timestamp": [timestamp],
+            "datetime": [datetime],
             "power_usage": [power_usage],
             "appliance_in_use": [0]  # dummy value, not used in prediction
         }
@@ -72,5 +72,3 @@ class PredictModel:
         current = datetime.datetime.now()
         return current.year, current.month, current.day, current.hour, current.minute, current.second
 
-    def get_timestamp(self, year, month, day, hour, minute, second):
-        return datetime.datetime(year, month, day, hour, minute, second)

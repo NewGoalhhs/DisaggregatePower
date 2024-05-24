@@ -34,13 +34,11 @@ class TrainModel:
         lb.update()
 
         # Convert the string power_usage['datetime'] to int for training
-        power_usage['datetime'] = power_usage['datetime'].apply(
-            lambda x: datetime.strptime(x, '%Y-%m-%d %H:%M:%S').timestamp())
         lb.update()
         data = {
-            "timestamp": power_usage.get('datetime').values,
-            "power_usage": power_usage.get('power_usage').values,
-            "appliance_in_use": power_usage.get('IsUsingAppliance').values
+            "datetime": power_usage.get('datetime'),
+            "power_usage": power_usage.get('power_usage'),
+            "appliance_in_use": power_usage.get('IsUsingAppliance')
         }
         lb.finish()
 
@@ -72,6 +70,6 @@ class TrainModel:
         return f"{models_path}/{datetime_str}_{score}_{appliance}.{self.model.file_extension()}"
 
     def get_model_score(self, data):
-        X, y = self.model.preprocess_data(data)
-        y_pred = self.model.predict(X)
+        y = data['appliance_in_use']
+        y_pred = self.model.predict(data)
         return self.model.get_score(y, y_pred)
