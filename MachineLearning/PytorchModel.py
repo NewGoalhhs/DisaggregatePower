@@ -2,7 +2,6 @@ import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from datetime import datetime
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, accuracy_score
@@ -49,13 +48,9 @@ class PytorchModel(MachineLearningModel):
         df['hour'] = df['datetime'].dt.hour
         df['day'] = df['datetime'].dt.dayofweek
 
-        # One-hot encode day of the week
-        day_of_week_encoded = self.encoder.fit_transform(df[['day']])
-
         # Combine all features
-        feature_columns = ['power_usage', 'hour']
+        feature_columns = ['power_usage', 'day', 'hour']
         X = df[feature_columns]
-        X = np.hstack((X.values, day_of_week_encoded))
         X = self.scaler.fit_transform(X)
         X = torch.tensor(X, dtype=torch.float32).to(self.device)
         y = torch.tensor(df['appliance_in_use'].values, dtype=torch.float32).unsqueeze(1).to(self.device)
@@ -71,7 +66,7 @@ class PytorchModel(MachineLearningModel):
     def load_model(self, path):
         self.model.load_state_dict(torch.load(path))
 
-    def train(self, data, epochs=10, test_size=0.2, random_state=42):
+    def train(self, data, epochs=1000, test_size=0.2, random_state=42):
         X, y = self.preprocess_data(data)
         X_train, X_test, y_train, y_test = train_test_split(X.cpu().numpy(), y.cpu().numpy(), train_size=1-test_size, test_size=test_size, random_state=random_state)
         X_train, y_train = torch.tensor(X_train, dtype=torch.float32).to(self.device), torch.tensor(y_train, dtype=torch.float32).to(self.device)
@@ -109,7 +104,7 @@ class PytorchModel(MachineLearningModel):
         self.model.eval()
         with torch.no_grad():
             feature_importances = self.model.layer1.weight.abs().sum(dim=0).cpu().numpy()
-        feature_names = ['power_usage', 'hour'] + [f'day_{i}' for i in range(self.encoder.categories_[0].size)]
+        feature_names = ['power_usage', 'hour', 'day']
         importance_df = pd.DataFrame({'Feature': feature_names, 'Importance': feature_importances})
         importance_df = importance_df.sort_values(by='Importance', ascending=False)
 
@@ -125,3 +120,4 @@ class PytorchModel(MachineLearningModel):
         # Make the y as long as y_pred
         y = y[:len(y_pred)]
         return accuracy_score(y, y_pred)
+

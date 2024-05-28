@@ -66,7 +66,8 @@ class PredictModel:
             "power_usage": [power_usage],
             "appliance_in_use": [0]  # dummy value, not used in prediction
         }
-        return self.model.predict(data)
+        predictions = self.model.predict(data)
+        print(f"Predicted appliance usage: {predictions[0]}")
 
     def get_datetime(self, p):
         current = datetime.datetime.now()
