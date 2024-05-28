@@ -19,8 +19,7 @@ data_list = [pd.read_csv(file, parse_dates=['time'], index_col='time') for file 
 data = pd.concat(data_list)
 
 # Preprocess data (example: resampling to hourly data)
-data = data.resample('s').mean().fillna(method='ffill')
-
+data = data.resample('s').mean().ffill()
 # Fit ARIMA model
 model = ARIMA(data['main'], order=(5,1,0))
 model_fit = model.fit()
