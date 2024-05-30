@@ -2,47 +2,31 @@ import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, accuracy_score
 import pandas as pd
 import numpy as np
+
+import app
+from MachineLearning.classifier.DeepBinaryClassifier import DeepBinaryClassifier
 from core.MachineLearningModel import MachineLearningModel
 import matplotlib.pyplot as plt
 
-class BinaryClassifier(nn.Module):
-    def __init__(self, input_size, hidden_size):
-        super(BinaryClassifier, self).__init__()
-        self.layer1 = nn.Linear(input_size, hidden_size)
-        self.layer2 = nn.Linear(hidden_size, hidden_size)
-        self.layer3 = nn.Linear(hidden_size, hidden_size)
-        self.layer4 = nn.Linear(hidden_size, 1)
-        self.sigmoid = nn.Sigmoid()
-        self.dropout = nn.Dropout(p=0.5)
-
-    def forward(self, x):
-        x = torch.relu(self.layer1(x))
-        x = self.dropout(x)
-        x = torch.relu(self.layer2(x))
-        x = self.dropout(x)
-        x = torch.relu(self.layer3(x))
-        x = self.dropout(x)
-        x = self.sigmoid(self.layer4(x))
-        return x
 
 class PytorchModel(MachineLearningModel):
-    def __init__(self, input_size=3, hidden_size=64):  # Adjusted input_size
+    def __init__(self, input_size=3, hidden_size=None):  # Adjusted input_size
+        if hidden_size is None:
+            hidden_size = [64, 32, 16]
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.model = BinaryClassifier(input_size, hidden_size).to(self.device)
-        self.criterion = nn.BCELoss()
+        self.model = DeepBinaryClassifier(input_size, hidden_size, 1).to(self.device)  # Adjusted to fit new classifier
+        self.criterion = nn.BCEWithLogitsLoss()  # Use BCEWithLogitsLoss for logits
         self.optimizer = optim.Adam(self.model.parameters(), lr=0.001)
         self.scaler = StandardScaler()
-        self.encoder = OneHotEncoder(categories='auto', sparse_output=False)
 
     def preprocess_data(self, data):
         df = pd.DataFrame(data)
         df['datetime'] = pd.to_datetime(df['datetime'])
-        df = df.sort_values(by='datetime').reset_index(drop=True)
 
         # Extract additional time features
         df['hour'] = df['datetime'].dt.hour
@@ -66,11 +50,16 @@ class PytorchModel(MachineLearningModel):
     def load_model(self, path):
         self.model.load_state_dict(torch.load(path))
 
-    def train(self, data, epochs=1000, test_size=0.2, random_state=42):
+    def train(self, data, epochs=100, test_size=0.2, random_state=42):
         X, y = self.preprocess_data(data)
-        X_train, X_test, y_train, y_test = train_test_split(X.cpu().numpy(), y.cpu().numpy(), train_size=1-test_size, test_size=test_size, random_state=random_state)
-        X_train, y_train = torch.tensor(X_train, dtype=torch.float32).to(self.device), torch.tensor(y_train, dtype=torch.float32).to(self.device)
-        X_test, y_test = torch.tensor(X_test, dtype=torch.float32).to(self.device), torch.tensor(y_test, dtype=torch.float32).to(self.device)
+        X_train, X_test, y_train, y_test = train_test_split(X.cpu().numpy(), y.cpu().numpy(), train_size=1 - test_size,
+                                                            test_size=test_size, random_state=random_state)
+        X_train, y_train = torch.tensor(X_train, dtype=torch.float32).to(self.device), torch.tensor(y_train,
+                                                                                                    dtype=torch.float32).to(
+            self.device)
+        X_test, y_test = torch.tensor(X_test, dtype=torch.float32).to(self.device), torch.tensor(y_test,
+                                                                                                 dtype=torch.float32).to(
+            self.device)
 
         for epoch in range(epochs):
             self.model.train()
@@ -81,13 +70,20 @@ class PytorchModel(MachineLearningModel):
             self.optimizer.step()
             print(f'Epoch {epoch + 1}/{epochs}, Loss: {loss.item()}')
 
+            # Apply sigmoid and thresholding for evaluation purposes
+            with torch.no_grad():
+                self.model.eval()
+                sigmoid_outputs = torch.sigmoid(outputs)
+                parsed_outputs = sigmoid_outputs > 0.05
+                accuracy = (parsed_outputs == y_train).float().mean().item()
+                print(f'Accuracy: {accuracy * 100:.2f}%')
         self.evaluate(X_test, y_test)
 
     def evaluate(self, X_test, y_test):
         self.model.eval()
         with torch.no_grad():
             outputs = self.model(X_test)
-            predictions = (outputs > 0.5).float()
+            predictions = torch.sigmoid(outputs) > 0.05  # Apply sigmoid and thresholding
             accuracy = (predictions == y_test).float().mean().item()
             print(f'Accuracy: {accuracy * 100:.2f}%')
             print(classification_report(y_test.cpu().numpy(), predictions.cpu().numpy()))
@@ -97,27 +93,42 @@ class PytorchModel(MachineLearningModel):
         self.model.eval()
         with torch.no_grad():
             outputs = self.model(X)
-            predictions = (outputs > 0.5).float().cpu().numpy().flatten().tolist()
-        return predictions
+            predictions = torch.sigmoid(outputs) > 0.05  # Apply sigmoid and thresholding
+            return predictions.float().cpu().numpy().flatten().tolist()
 
-    def visualize(self):
-        self.model.eval()
-        with torch.no_grad():
-            feature_importances = self.model.layer1.weight.abs().sum(dim=0).cpu().numpy()
-        feature_names = ['power_usage', 'hour', 'day']
-        importance_df = pd.DataFrame({'Feature': feature_names, 'Importance': feature_importances})
-        importance_df = importance_df.sort_values(by='Importance', ascending=False)
+    def visualize(self, predictions, real_data):
+        # Preprocess data
 
-        plt.figure(figsize=(12, 8))
-        plt.barh(importance_df['Feature'], importance_df['Importance'])
-        plt.xlabel('Importance')
-        plt.ylabel('Feature')
-        plt.title('Feature Importances')
-        plt.gca().invert_yaxis()
+        # Convert tensors to numpy arrays for plotting
+        real_data = np.array(real_data)
+        predictions = np.array(predictions)
+
+        # Plot the actual vs predicted values
+        plt.figure(figsize=(14, 7))
+        plt.plot(real_data, label='Actual Appliance Usage', alpha=0.75)
+        plt.plot(predictions, label='Predicted Appliance Usage', alpha=0.75)
+        plt.xlabel('Time')
+        plt.ylabel('Appliance Usage')
+        plt.title('Actual vs Predicted Appliance Usage')
+        plt.legend()
         plt.show()
 
     def get_score(self, y, y_pred) -> float:
-        # Make the y as long as y_pred
         y = y[:len(y_pred)]
         return accuracy_score(y, y_pred)
 
+
+if __name__ == '__main__':
+    df = pd.read_csv(app.__ROOT__ + '/QuickRunData/synthetic_power_usage_data.csv')
+    data = {
+        'datetime': df['datetime'],
+        'power_usage': df['power_usage'],
+        'appliance_in_use': df['appliance_in_use']
+    }
+    model = PytorchModel()
+    model.train(data)
+    predictions = model.predict(data)
+    model.visualize(predictions, data['appliance_in_use'])  # Pass the data to visualize method
+    print(predictions)
+    score = model.get_score(data['appliance_in_use'], predictions)
+    print(score)

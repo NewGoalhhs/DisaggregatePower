@@ -1,6 +1,6 @@
 class DatabaseOperations:
     SELECT_ALL = "SELECT * FROM {}"
-    SELECT_WHERE = "SELECT * FROM {} WHERE {} = {}"
+    SELECT_WHERE = "SELECT * FROM {} WHERE {} = \"{}\""
     SELECT_MAX = "SELECT MAX({}) FROM {}"
     SELECT_APPLIANCE_THRESHOLD = """
         SELECT appliance_power
@@ -101,6 +101,7 @@ class PowerUsageOperations:
     '''
     DROP_POWER_USAGE_TABLE = 'DROP TABLE PowerUsage'
     INSERT_POWER_USAGE = 'INSERT INTO PowerUsage (building_id, datetime, power_usage) VALUES ("{}", "{}", "{}")'
+    SELECT_POWER_USAGE_BETWEEN = 'SELECT * FROM PowerUsage WHERE datetime BETWEEN "{}" AND "{}"'
 
 
 class PowerUsageApplianceOperations:
@@ -123,6 +124,11 @@ class PowerUsageApplianceOperations:
 
 
 class IsUsingApplianceOperations:
+    SELECT_WHERE_POWERUSAGE_FOR_APPLIANCE = '''
+        SELECT Appliance_id
+        FROM IsUsingAppliance
+        WHERE PowerUsage_id = "{}" and Appliance_id = "{}"
+        '''
     CREATE_IS_USING_APPLIANCE_TABLE = '''
         CREATE TABLE IsUsingAppliance (
             id             INTEGER PRIMARY KEY AUTOINCREMENT,

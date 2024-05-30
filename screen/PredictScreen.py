@@ -24,7 +24,9 @@ class PredictScreen(Screen):
                         for index, sub_entry in enumerate(sub_entries):
                             model = sub_entry.name.split('.')[0]
 
-                            instance = PredictModel(entry.name + '/' + sub_entry.name)
+                            appliance_name = sub_entry.name.split('.')[0].split('_')[-1]
+
+                            instance = PredictModel(entry.name + '/' + sub_entry.name, appliance_name)
                             options.append({
                                 'key': str(index + 1),
                                 'text': model,

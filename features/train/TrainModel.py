@@ -49,6 +49,11 @@ class TrainModel:
 
         self.model.save_model(self.get_save_path(score, appliance['name']))
 
+        p.print_line(f"Model saved at {self.get_save_path(score, appliance['name'])}")
+        p.request_input("Press enter to continue: ")
+
+        p.to_previous_screen()
+
     def prepare_train(self, p):
         appliances = Database.query(Query.SELECT_ALL.format('Appliance'))
         p.print_line("All appliances:")

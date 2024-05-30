@@ -8,10 +8,11 @@ from helper.LoadingBarHelper import LoadingBarHelper
 
 
 class PrintHelper(BasePrintHelper):
-    def __init__(self, primary_color: str = 'blue', secondary_color: str = 'green'):
+    def __init__(self, primary_color: str = 'blue', secondary_color: str = 'green', home_screen=None):
         self.options = None
         self.primary_color = self.get_color_code(primary_color)
         self.secondary_color = self.get_color_code(secondary_color)
+        self.home_screen = home_screen
 
     def print_heading(self, text: str):
         print()
@@ -46,12 +47,25 @@ class PrintHelper(BasePrintHelper):
         # result = self.request_input('Enter an option: ', autocomplete=list(self.options.keys()))
         result = self.request_input(text)
 
+        if result == 'exit':
+            exit()
+        elif result == 'back':
+            if not self.previous_screen:
+                self.print_line('No previous screen')
+            else:
+                return self.previous_screen.screen(p=self)
+        elif result == 'home':
+            if not self.home_screen:
+                self.print_line('No home screen')
+            else:
+                return self.home_screen.screen(p=self)
+
         if result in self.options.keys():
             function = self.options[result]['function']
             if function is None:
                 return
             elif isinstance(function, Screen):
-                return function.screen(p=self)
+                return function.run(p=self)
             elif isinstance(function, Generate):
                 return function.run(p=self)
             elif (function is callable or
@@ -78,3 +92,12 @@ class PrintHelper(BasePrintHelper):
         helper.secondary_color = self.secondary_color
         helper.print()
         return helper
+
+    def set_previous_screen(self, screen):
+        self.previous_screen = screen
+
+    def to_previous_screen(self):
+        if not self.previous_screen:
+            self.print_line('No previous screen')
+        else:
+            return self.previous_screen.run(p=self)
