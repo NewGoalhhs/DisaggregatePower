@@ -10,10 +10,10 @@ from core.MachineLearningModel import MachineLearningModel
 
 
 class RandomForestModel(MachineLearningModel):
-    def __init__(self, n_estimators=100, random_state=42):
+    def __init__(self, n_estimators=12, random_state=42):
         self.scaler = StandardScaler()
         self.encoder = OneHotEncoder(categories='auto', sparse_output=False)
-        self.model = RandomForestClassifier(verbose=2, n_estimators=n_estimators, random_state=random_state)
+        self.model = RandomForestClassifier(verbose=2, n_estimators=n_estimators, random_state=random_state, n_jobs=-1)
 
     def preprocess_data(self, data):
         df = pd.DataFrame(data)

@@ -46,6 +46,10 @@ class TrainModel:
 
         # Immediately let the model predict to get a score
         score = self.get_model_score(data)
+        if score is not None:
+            p.print_line(f"Model score: {score}")
+        else:
+            score = 1.0
 
         self.model.save_model(self.get_save_path(score, appliance['name']))
 

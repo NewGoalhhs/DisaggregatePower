@@ -20,11 +20,27 @@ class M005PowerUsageAppliance(Migration):
         self.set_loading_bar_status('Preparing data')
         self.update_loading_bar(0)
 
-        building = ("REDDUS_" + csv_path.split('_')[1].split('.')[0])
+        if '_' in csv_path:
+            reddus = True
+            building = ("REDDUS_" + csv_path.split('_')[1].split('.')[0])
+        else:
+            reddus = False
+            building = ("DATA_" + csv_path.split('-')[0].split('r')[1])
         building_id = Database.query(BuildingQuery.GET_BUILDING_ID.format(building))[0].get('id')
-        df = pd.read_csv(csv_path).dropna()
-        df['time'] = pd.to_datetime(df['time'])
 
+        if reddus:
+            df = pd.read_csv(csv_path).dropna()
+        else:
+            df = pd.read_csv(csv_path, delimiter=';').dropna()
+
+        if reddus:
+            df['time'] = pd.to_datetime(df['time'])
+        else:
+            current_time = pd.Timestamp('2020-01-01')
+            for index, row in df.iterrows():
+                df.at[index, 'time'] = current_time
+                current_time += pd.Timedelta(15, unit='m')
+            df = df.drop(columns=['Periods'])
 
         for datetime in df['time'].unique():
             power_usage_lookup.add((building_id, datetime))
