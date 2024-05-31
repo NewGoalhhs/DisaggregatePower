@@ -1,8 +1,10 @@
 import os
 from abc import ABC
 
+from core.Database import Database
 from core.Screen import Screen
 from features.predict.PredictModel import PredictModel
+from SQL.SQLQueries import DatabaseOperations as Query
 
 
 class PredictScreen(Screen):
@@ -24,7 +26,7 @@ class PredictScreen(Screen):
                         for index, sub_entry in enumerate(sub_entries):
                             model = sub_entry.name.split('.')[0]
 
-                            appliance_name = sub_entry.name.split('.')[0].split('_')[-1]
+                            appliance_name = self.get_appliance(sub_entry.name)
 
                             instance = PredictModel(entry.name + '/' + sub_entry.name, appliance_name)
                             options.append({
@@ -37,3 +39,16 @@ class PredictScreen(Screen):
 
     def simple_generate(self):
         pass
+
+    def get_appliance(self, file_name, additional=''):
+        if not file_name:
+            return ''
+
+        split_entry = file_name.split('.')[0]
+        appliance_name = split_entry.split('_')[-1] + additional
+        appliance = Database.query(Query.SELECT_WHERE.format('Appliance', 'name', appliance_name))
+        if len(appliance) > 0:
+            return appliance[0]
+        else:
+            handling = split_entry.replace('_' + appliance_name, '')
+            return self.get_appliance(handling, '_' + appliance_name)

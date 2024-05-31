@@ -11,9 +11,9 @@ from SQL.SQLQueries import PowerUsageOperations as PowerUsageQuery
 from SQL.SQLQueries import IsUsingApplianceOperations as IsUsingApplianceQuery
 
 class PredictModel:
-    def __init__(self, model_path, appliance_name):
+    def __init__(self, model_path, appliance):
         path = model_path.split('/')
-        self.appliance = Database.query(Query.SELECT_WHERE.format('Appliance', 'name', appliance_name))[0]
+        self.appliance = appliance
         self.model_name = path.pop()
         self.model_class = path.pop()
 
@@ -37,14 +37,14 @@ class PredictModel:
             "power_usage": power_usage,
             "appliance_in_use": appliance_in_use
         }
-        predictions = self.model.predict(data)
+        predictions, propabilities = self.model.predict(data)
         print(f"Datetime: {datetime[0]} - {datetime[-1]}")
         print(f"Power usage: {power_usage}")
         print(f"Predicted appliance usage: {predictions}")
         for power_usage_i, prediction in zip(power_usage, predictions):
             print("Prediction: " + str(power_usage_i) + ' - ' + str(prediction))
 
-        self.model.visualize(predictions, data['appliance_in_use'])
+        self.model.visualize(predictions, data['appliance_in_use'], propabilities)
 
         p.request_input("Press enter to continue: ")
 

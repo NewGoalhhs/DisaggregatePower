@@ -15,7 +15,7 @@ class TrainModel:
         self.model = model
 
     def train(self, p: PrintHelper):
-        appliance = self.prepare_train(p)
+        appliance, epochs = self.prepare_train(p)
         appliance_id = appliance['id']
         lb = p.get_loading_bar(text="Training model", goal=6)
         lb.set_status("Querying data")
@@ -42,7 +42,7 @@ class TrainModel:
         }
         lb.finish()
 
-        self.model.train(data)
+        self.model.train(data, epochs=epochs)
 
         # Immediately let the model predict to get a score
         score = self.get_model_score(data)
@@ -61,7 +61,20 @@ class TrainModel:
         for index, appliance in enumerate(appliances):
             p.add_option(index+1, appliance['name'], appliance)
         appliance = p.choose_option('Choose an appliance to train: ')
-        return appliance
+
+        epochs = 100
+        while True:
+            epochs_str = p.request_input('Choose the amount of epochs to train [100]: ')
+            if epochs_str == "":
+                break
+            if epochs_str.isdigit():
+                epochs = int(epochs_str)
+                break
+            if not epochs_str.isdigit():
+                p.print_line("Please enter a valid number.")
+                continue
+
+        return appliance, epochs
 
     def get_save_path(self, score, appliance):
         datetime_str = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")

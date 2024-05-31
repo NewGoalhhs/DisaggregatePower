@@ -70,13 +70,6 @@ class PytorchModel(MachineLearningModel):
             self.optimizer.step()
             print(f'Epoch {epoch + 1}/{epochs}, Loss: {loss.item()}')
 
-            # Apply sigmoid and thresholding for evaluation purposes
-            with torch.no_grad():
-                self.model.eval()
-                sigmoid_outputs = torch.sigmoid(outputs)
-                parsed_outputs = sigmoid_outputs > 0.05
-                accuracy = (parsed_outputs == y_train).float().mean().item()
-                print(f'Accuracy: {accuracy * 100:.2f}%')
         self.evaluate(X_test, y_test)
 
     def evaluate(self, X_test, y_test):
@@ -94,21 +87,23 @@ class PytorchModel(MachineLearningModel):
         with torch.no_grad():
             outputs = self.model(X)
             predictions = torch.sigmoid(outputs) > 0.05  # Apply sigmoid and thresholding
-            return predictions.float().cpu().numpy().flatten().tolist()
+            return predictions.float().cpu().numpy().flatten().tolist(), (outputs / 5 + 1).float().cpu().numpy().flatten().tolist()
 
-    def visualize(self, predictions, real_data):
+    def visualize(self, predictions, real_data, propabilities):
         # Preprocess data
 
         # Convert tensors to numpy arrays for plotting
         real_data = np.array(real_data)
         predictions = np.array(predictions)
+        propabilities = np.array(propabilities)
 
         # Plot the actual vs predicted values
         plt.figure(figsize=(14, 7))
-        plt.plot(real_data, label='Actual Appliance Usage', alpha=0.75)
-        plt.plot(predictions, label='Predicted Appliance Usage', alpha=0.75)
-        plt.xlabel('Time')
-        plt.ylabel('Appliance Usage')
+        plt.plot(real_data, label='Actual Is Using Appliance', alpha=0.75)
+        plt.plot(predictions, label='Predicted Is Using Appliance', alpha=0.75)
+        plt.plot(propabilities, label='Propability Is Using Appliance', alpha=0.75)
+        plt.xlabel('Time (seconds)')
+        plt.ylabel('Appliance Usage (0/1)')
         plt.title('Actual vs Predicted Appliance Usage')
         plt.legend()
         plt.show()
@@ -129,6 +124,9 @@ if __name__ == '__main__':
     model.train(data)
     predictions = model.predict(data)
     model.visualize(predictions, data['appliance_in_use'])  # Pass the data to visualize method
-    print(predictions)
+    print(data['datetime'][:10])
+    print(data['power_usage'][:10])
+    print(data['appliance_in_use'][:10])
+    print(predictions[:10])
     score = model.get_score(data['appliance_in_use'], predictions)
     print(score)
