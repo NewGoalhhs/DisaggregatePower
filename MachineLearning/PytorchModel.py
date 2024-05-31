@@ -89,25 +89,6 @@ class PytorchModel(MachineLearningModel):
             predictions = torch.sigmoid(outputs) > 0.05  # Apply sigmoid and thresholding
             return predictions.float().cpu().numpy().flatten().tolist(), (outputs / 5 + 1).float().cpu().numpy().flatten().tolist()
 
-    def visualize(self, predictions, real_data, propabilities):
-        # Preprocess data
-
-        # Convert tensors to numpy arrays for plotting
-        real_data = np.array(real_data)
-        predictions = np.array(predictions)
-        propabilities = np.array(propabilities)
-
-        # Plot the actual vs predicted values
-        plt.figure(figsize=(14, 7))
-        plt.plot(real_data, label='Actual Is Using Appliance', alpha=0.75)
-        plt.plot(predictions, label='Predicted Is Using Appliance', alpha=0.75)
-        plt.plot(propabilities, label='Propability Is Using Appliance', alpha=0.75)
-        plt.xlabel('Time (seconds)')
-        plt.ylabel('Appliance Usage (0/1)')
-        plt.title('Actual vs Predicted Appliance Usage')
-        plt.legend()
-        plt.show()
-
     def get_score(self, y, y_pred) -> float:
         y = y[:len(y_pred)]
         return accuracy_score(y, y_pred)
@@ -123,7 +104,6 @@ if __name__ == '__main__':
     model = PytorchModel()
     model.train(data)
     predictions = model.predict(data)
-    model.visualize(predictions, data['appliance_in_use'])  # Pass the data to visualize method
     print(data['datetime'][:10])
     print(data['power_usage'][:10])
     print(data['appliance_in_use'][:10])

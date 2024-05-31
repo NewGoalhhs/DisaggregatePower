@@ -1,7 +1,9 @@
 import datetime
 import random
 
+import numpy as np
 import pandas as pd
+from matplotlib import pyplot as plt
 
 import app
 from core.Database import Database
@@ -44,7 +46,7 @@ class PredictModel:
         for power_usage_i, prediction in zip(power_usage, predictions):
             print("Prediction: " + str(power_usage_i) + ' - ' + str(prediction))
 
-        self.model.visualize(predictions, data['appliance_in_use'], propabilities)
+        self.visualize(predictions, data['appliance_in_use'], propabilities)
 
         p.request_input("Press enter to continue: ")
 
@@ -117,3 +119,22 @@ class PredictModel:
         datetime = f"{year}-{month:02d}-{day:02d} {hour:02d}:{minute:02d}:{second:02d}"
 
         return [datetime], [power_usage]
+
+    def visualize(self, predictions, real_data, propabilities):
+        # Preprocess data
+
+        # Convert tensors to numpy arrays for plotting
+        real_data = np.array(real_data)
+        predictions = np.array(predictions)
+        propabilities = np.array(propabilities)
+
+        # Plot the actual vs predicted values
+        plt.figure(figsize=(14, 7))
+        plt.plot(real_data, label='Actual Is Using Appliance', alpha=0.75)
+        plt.plot(predictions, label='Predicted Is Using Appliance', alpha=0.75)
+        plt.plot(propabilities, label='Propability Is Using Appliance', alpha=0.75)
+        plt.xlabel('Time (seconds)')
+        plt.ylabel('Appliance Usage (0/1)')
+        plt.title('Actual vs Predicted Appliance Usage')
+        plt.legend()
+        plt.show()
