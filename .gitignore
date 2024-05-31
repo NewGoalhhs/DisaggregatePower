@@ -11,3 +11,4 @@ PowerChainger-journal
 identifier.sqlite
 *.pkl
 *.pt
+*.joblib
