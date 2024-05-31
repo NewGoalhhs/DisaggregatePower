@@ -18,8 +18,8 @@ class BasicModel(MachineLearningModel):
 
     def preprocess_data(self, data):
         df = pd.DataFrame(data)
-        df['timestamp'] = pd.to_datetime(df['timestamp'])
-        df = df.sort_values(by='timestamp').reset_index(drop=True)
+        df['datetime'] = pd.to_datetime(df['datetime'])
+        df = df.sort_values(by='datetime').reset_index(drop=True)
 
         # Generate rolling features for the last 25 power usage values
         for i in range(1, 26):
@@ -29,8 +29,8 @@ class BasicModel(MachineLearningModel):
         df = df.dropna().reset_index(drop=True)
 
         # Extract additional time features
-        df['hour'] = df['timestamp'].dt.hour
-        df['day'] = df['timestamp'].dt.dayofweek
+        df['hour'] = df['datetime'].dt.hour
+        df['day'] = df['datetime'].dt.dayofweek
 
         # Prepare feature set and labels
         feature_columns = [f'power_usage_lag_{i}' for i in range(1, 26)] + ['hour', 'day']
@@ -61,13 +61,13 @@ class BasicModel(MachineLearningModel):
         print(classification_report(y_test, y_pred))
         print(f"Accuracy: {accuracy_score(y_test, y_pred)}")
 
-    def predict(self, power_usages, timestamp):
+    def predict(self, power_usages, datetime):
         if len(power_usages) < 25:
             raise ValueError("At least 25 previous power usage values are required for prediction.")
 
-        timestamp = pd.to_datetime(timestamp)
-        hour = timestamp.hour
-        day = timestamp.dayofweek
+        datetime = pd.to_datetime(datetime)
+        hour = datetime.hour
+        day = datetime.dayofweek
 
         # Prepare the feature vector
         features = power_usages[-25:] + [hour, day]

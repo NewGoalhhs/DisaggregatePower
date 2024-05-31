@@ -14,11 +14,17 @@ class M003Appliance(Migration):
     def exclude_columns(self):
         return [
             'main',
-            'time'
+            'time',
+            'Periods',
+            'Total Consumption',
+            'Unnamed: 0'
         ]
 
     def insert(self, csv_path):
-        data = pd.read_csv(csv_path, nrows=1).columns
+        if '_' in csv_path:
+            data = pd.read_csv(csv_path, nrows=1).columns
+        else:
+            data = pd.read_csv(csv_path, delimiter=';', nrows=1).columns
         self.set_loading_bar_goal(len(data) * 2)
         self.set_loading_bar_status('Retrieving data')
         for name in data:
