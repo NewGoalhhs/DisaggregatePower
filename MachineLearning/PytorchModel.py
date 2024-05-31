@@ -18,7 +18,7 @@ class PytorchModel(MachineLearningModel):
         if hidden_size is None:
             hidden_size = [64, 32, 16]
 
-        if torch.backends.mps.is_available() and torch.cuda.is_available():
+        if torch.backends.mps.is_available():
             self.device = torch.device('mps')
         elif torch.cuda.is_available():
             self.device = torch.device('cuda')
