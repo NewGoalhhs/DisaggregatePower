@@ -13,14 +13,20 @@ from MachineLearning.classifier.DeepBinaryClassifier import DeepBinaryClassifier
 from core.MachineLearningModel import MachineLearningModel
 import matplotlib.pyplot as plt
 
-
 class PytorchModel(MachineLearningModel):
-    def __init__(self, input_size=3, hidden_size=None):  # Adjusted input_size
+    def __init__(self, input_size=5, hidden_size=None):
         if hidden_size is None:
             hidden_size = [64, 32, 16]
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.model = DeepBinaryClassifier(input_size, hidden_size, 1).to(self.device)  # Adjusted to fit new classifier
-        self.criterion = nn.BCEWithLogitsLoss()  # Use BCEWithLogitsLoss for logits
+
+        if torch.backends.mps.is_available() and torch.cuda.is_available():
+            self.device = torch.device('mps')
+        elif torch.cuda.is_available():
+            self.device = torch.device('cuda')
+        else:
+            self.device = torch.device('cpu')
+
+        self.model = DeepBinaryClassifier(input_size, hidden_size, 1).to(self.device)
+        self.criterion = nn.BCEWithLogitsLoss()
         self.optimizer = optim.Adam(self.model.parameters(), lr=0.001)
         self.scaler = StandardScaler()
 
@@ -31,11 +37,14 @@ class PytorchModel(MachineLearningModel):
         # Extract additional time features
         df['hour'] = df['datetime'].dt.hour
         df['day'] = df['datetime'].dt.dayofweek
+        df['month'] = df['datetime'].dt.month
+        df['weekday'] = df['datetime'].dt.weekday
 
         # Combine all features
-        feature_columns = ['power_usage', 'day', 'hour']
+        feature_columns = ['power_usage', 'month', 'day', 'hour','weekday']
         X = df[feature_columns]
         X = self.scaler.fit_transform(X)
+        # TODO: Kijken waarom die hier op zijn bek gaat
         X = torch.tensor(X, dtype=torch.float32).to(self.device)
         y = torch.tensor(df['appliance_in_use'].values, dtype=torch.float32).unsqueeze(1).to(self.device)
         return X, y
