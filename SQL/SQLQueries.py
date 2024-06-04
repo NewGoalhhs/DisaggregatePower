@@ -1,6 +1,6 @@
 class DatabaseOperations:
     SELECT_ALL = "SELECT * FROM {}"
-    SELECT_WHERE = "SELECT * FROM {} WHERE {}"
+    SELECT_WHERE = "SELECT * FROM {} WHERE {} = \"{}\""
     SELECT_MAX = "SELECT MAX({}) FROM {}"
     SELECT_APPLIANCE_THRESHOLD = """
         SELECT appliance_power
@@ -25,6 +25,28 @@ class DatabaseOperations:
             WHERE building_id = {}
         )
         """
+
+    SELECT_BUILDING_IDS_WITH_APPLIANCE = """
+        SELECT DISTINCT building_id
+        FROM PowerUsage
+        WHERE id IN (
+            SELECT PowerUsage_id
+            FROM PowerUsage_Appliance
+            WHERE Appliance_id = {}
+        )
+        """
+
+    SELECT_POWER_USAGE_APPLIANCE_FOR_APPLIANCE = """
+        SELECT PowerUsage_Appliance.appliance_power
+        FROM PowerUsage_Appliance
+        JOIN PowerUsage ON PowerUsage_Appliance.PowerUsage_id = PowerUsage.id
+        WHERE Appliance_id = {}
+        AND PowerUsage.timestamp BETWEEN '{}' AND '{}'
+    """
+
+    SELECT_ALL_JOIN = """
+        SELECT * FROM {} JOIN {} ON {} = {}
+    """
 
 
 class MigrationOperations:
@@ -79,6 +101,7 @@ class PowerUsageOperations:
     '''
     DROP_POWER_USAGE_TABLE = 'DROP TABLE PowerUsage'
     INSERT_POWER_USAGE = 'INSERT INTO PowerUsage (building_id, datetime, power_usage) VALUES ("{}", "{}", "{}")'
+    SELECT_POWER_USAGE_BETWEEN = 'SELECT * FROM PowerUsage WHERE datetime BETWEEN "{}" AND "{}"'
 
 
 class PowerUsageApplianceOperations:
@@ -101,6 +124,11 @@ class PowerUsageApplianceOperations:
 
 
 class IsUsingApplianceOperations:
+    SELECT_WHERE_POWERUSAGE_FOR_APPLIANCE = '''
+        SELECT Appliance_id
+        FROM IsUsingAppliance
+        WHERE PowerUsage_id = "{}" and Appliance_id = "{}"
+        '''
     CREATE_IS_USING_APPLIANCE_TABLE = '''
         CREATE TABLE IsUsingAppliance (
             id             INTEGER PRIMARY KEY AUTOINCREMENT,

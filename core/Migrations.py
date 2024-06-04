@@ -94,11 +94,11 @@ class Migrations:
                 migration.insert(file)
                 migration.migrate()
 
-        isUsingAppliance = IsUsingAppliance(self.db)
+        is_using_appliance = IsUsingAppliance(self.db)
 
-        isUsingAppliance.up()
-        isUsingAppliance.insert()
-        isUsingAppliance.migrate()
+        is_using_appliance.up()
+        is_using_appliance.insert()
+        is_using_appliance.migrate()
 
     def get_files(self):
         directory = 'Data/'

@@ -1,3 +1,4 @@
+import inspect
 import os
 
 from core.Generate import Generate
@@ -7,10 +8,11 @@ from helper.LoadingBarHelper import LoadingBarHelper
 
 
 class PrintHelper(BasePrintHelper):
-    def __init__(self, primary_color: str = 'blue', secondary_color: str = 'green'):
+    def __init__(self, primary_color: str = 'blue', secondary_color: str = 'green', home_screen=None):
         self.options = None
         self.primary_color = self.get_color_code(primary_color)
         self.secondary_color = self.get_color_code(secondary_color)
+        self.home_screen = home_screen
 
     def print_heading(self, text: str):
         print()
@@ -33,30 +35,46 @@ class PrintHelper(BasePrintHelper):
     def add_option(self, key: str, text: str, function: callable):
         print(self.get_color_code('reset') + f" [" + self.secondary_color + f"{key}" + self.get_color_code(
             'reset') + f"] " + self.primary_color + text)
-        self.options[key] = {
+        self.options[str(key)] = {
             'text': text,
             'function': function
         }
 
-    def choose_option(self):
+    def choose_option(self, text: str = 'Enter an option: '):
         print()
         print(self.secondary_color + '-' * 50)
         print(self.get_color_code('reset'))
         # result = self.request_input('Enter an option: ', autocomplete=list(self.options.keys()))
-        result = self.request_input('Enter an option: ')
+        result = self.request_input(text)
 
-        if result in self.options:
+        if result == 'exit':
+            exit()
+        elif result == 'back':
+            if not self.previous_screen:
+                self.print_line('No previous screen')
+            else:
+                return self.previous_screen.screen(p=self)
+        elif result == 'home':
+            if not self.home_screen:
+                self.print_line('No home screen')
+            else:
+                return self.home_screen.screen(p=self)
+
+        if result in self.options.keys():
             function = self.options[result]['function']
             if function is None:
                 return
-            elif function == 'exit':
-                exit()
             elif isinstance(function, Screen):
-                return function.screen(p=self)
+                return function.run(p=self)
             elif isinstance(function, Generate):
                 return function.run(p=self)
-            elif function is callable:
+            elif (function is callable or
+                  function is classmethod or
+                  function is staticmethod or
+                  inspect.ismethod(function)):
                 return function(p=self)
+            else:
+                return function
 
         else:
             self.print_line('Invalid option')
@@ -69,6 +87,17 @@ class PrintHelper(BasePrintHelper):
         return input(text)
 
     def get_loading_bar(self, text, goal, length=50) -> LoadingBarHelper:
-        helper = LoadingBarHelper(text, goal, length, primary_color=self.primary_color, secondary_color=self.secondary_color)
+        helper = LoadingBarHelper(text=text, goal=goal, length=length)
+        helper.primary_color = self.primary_color
+        helper.secondary_color = self.secondary_color
         helper.print()
         return helper
+
+    def set_previous_screen(self, screen):
+        self.previous_screen = screen
+
+    def to_previous_screen(self):
+        if not self.previous_screen:
+            self.print_line('No previous screen')
+        else:
+            return self.previous_screen.run(p=self)
