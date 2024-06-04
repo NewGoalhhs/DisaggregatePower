@@ -15,7 +15,7 @@ class MachineLearningModel:
         pass
 
     @abstractmethod
-    def train(self, data):
+    def train(self, data, epochs=100):
         pass
 
     @abstractmethod
