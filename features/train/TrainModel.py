@@ -93,5 +93,5 @@ class TrainModel:
 
     def get_model_score(self, data):
         y = data['appliance_in_use']
-        y_pred = self.model.predict(data)
+        y_pred, _ = self.model.predict(data)
         return self.model.get_score(y, y_pred)

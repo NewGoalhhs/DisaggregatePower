@@ -16,9 +16,11 @@ class TrainScreen(Screen):
         # Return a list of indexes and generate class options from features/generate
         with os.scandir('MachineLearning') as entries:
             options = []
-            for index, entry in enumerate(entries):
+            index = 0
+            for entry in entries:
                 if not entry.is_file():
                     continue
+
 
                 name = entry.name.split('.')[0]
                 module = __import__('MachineLearning.' + name,
@@ -32,6 +34,8 @@ class TrainScreen(Screen):
                     'text': name,
                     'function': instance.train
                 })
+                
+                index += 1
 
             return options
 
