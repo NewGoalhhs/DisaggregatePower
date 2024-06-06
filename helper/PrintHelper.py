@@ -3,6 +3,7 @@ import os
 
 from core.Generate import Generate
 from core.Screen import Screen
+from core.TestResult import TestResult
 from helper.BasePrintHelper import BasePrintHelper
 from helper.LoadingBarHelper import LoadingBarHelper
 
@@ -25,6 +26,10 @@ class PrintHelper(BasePrintHelper):
 
     def print_line(self, text: str = ''):
         print(text)
+
+    def print_cut(self):
+        print(self.secondary_color + '-' * 50)
+        print(self.get_color_code('reset'))
 
     def open_options(self):
         print()
@@ -72,7 +77,10 @@ class PrintHelper(BasePrintHelper):
                   function is classmethod or
                   function is staticmethod or
                   inspect.ismethod(function)):
-                return function(p=self)
+                if 'p' in inspect.getfullargspec(function).args:
+                    return function(p=self)
+                else:
+                    return function()
             else:
                 return function
 
@@ -83,8 +91,18 @@ class PrintHelper(BasePrintHelper):
     def reset_lines(self):
         os.system('cls' if os.name == 'nt' else 'clear')
 
-    def request_input(self, text: str):
-        return input(text)
+    def request_input(self, text: str, condition=None, default='', message='Invalid input'):
+        if condition:
+            while True:
+                result = input(text)
+                if result == '':
+                    result = default
+                if condition(result):
+                    return result
+                else:
+                    self.print_line(message)
+        else:
+            return input(text)
 
     def get_loading_bar(self, text, goal, length=50) -> LoadingBarHelper:
         helper = LoadingBarHelper(text=text, goal=goal, length=length)

@@ -1,7 +1,8 @@
 from core.Screen import Screen
-from screen.GenerateScreen import GenerateScreen
-from screen.PredictScreen import PredictScreen
-from screen.TrainScreen import TrainScreen
+from screen.navigation.DocumentScreen import DocumentScreen
+from screen.navigation.GenerateScreen import GenerateScreen
+from screen.navigation.PredictScreen import PredictScreen
+from screen.navigation.TrainScreen import TrainScreen
 
 
 class HomeScreen(Screen):
@@ -13,4 +14,5 @@ class HomeScreen(Screen):
         p.add_option('1', 'Generate', GenerateScreen(self))
         p.add_option('2', 'Train', TrainScreen(self))
         p.add_option('3', 'Predict', PredictScreen(self))
+        p.add_option('4', 'Document', DocumentScreen(self))
         p.choose_option()
