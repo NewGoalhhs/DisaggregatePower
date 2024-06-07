@@ -20,7 +20,7 @@ class PytorchModel(MachineLearningModel):
 
         # Training parameters
         if hidden_size is None:
-            self.hidden_size = [81, 81, 81, 27, 9, 3]
+            self.hidden_size = [52, 79, 52, 27]
         else:
             self.hidden_size = hidden_size
 

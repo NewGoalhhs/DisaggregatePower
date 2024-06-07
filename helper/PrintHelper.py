@@ -50,7 +50,7 @@ class PrintHelper(BasePrintHelper):
         print(self.secondary_color + '-' * 50)
         print(self.get_color_code('reset'))
         # result = self.request_input('Enter an option: ', autocomplete=list(self.options.keys()))
-        result = self.request_input(text)
+        result = str(self.request_input(text))
 
         if result == 'exit':
             exit()
@@ -65,7 +65,7 @@ class PrintHelper(BasePrintHelper):
             else:
                 return self.home_screen.screen(p=self)
 
-        if result in self.options.keys():
+        if result in list(self.options.keys()):
             function = self.options[result]['function']
             if function is None:
                 return

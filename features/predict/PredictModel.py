@@ -31,15 +31,6 @@ class PredictModel:
         except RuntimeError:
             print("Model not working. " + app.__ROOT__ + f"/MachineLearning/models/{model_path}")
 
-    def prepare_predict(self, p):
-        return self.use_existing_data(p)
-
-    def run(self, p):
-        self.predict(p)
-
-        p.request_input("Press enter to continue: ")
-
-        p.to_previous_screen()
 
     def predict(self, datetime, power_usage, appliance_in_use, print_progress: bool = True):
         p = PrintHelper()
@@ -64,21 +55,12 @@ class PredictModel:
         current = datetime.datetime.now()
         return current.year, current.month, current.day, current.hour, current.minute, current.second
 
-    def use_existing_data(self, p):
-        # Get a random timeframe of 1 minute
-        power_usage = Database.query(Query.SELECT_ALL.format('PowerUsage'))
-        # Get a random datetime from power_usage
-        # random_datetime = random.Random().choice(power_usage)['datetime']
-        random_datetime = p.request_input('Enter a datetime: ')
-
-        if random_datetime == '':
-            return self.ask_user_for_datetime_and_power_usage(p)
+    def use_existing_data(self, datetime):
         # Get the next minute from the random datetime
-        next_minute = datetime.datetime.strptime(random_datetime, "%Y-%m-%d %H:%M:%S") + datetime.timedelta(minutes=1)
+        next_minute = datetime.datetime.strptime(datetime, "%Y-%m-%d %H:%M:%S") + datetime.timedelta(minutes=1)
         # Get the power usage from the random datetime to the next minute
-        power_usage = Database.query(PowerUsageQuery.SELECT_POWER_USAGE_BETWEEN.format(random_datetime, next_minute))
+        power_usage = Database.query(PowerUsageQuery.SELECT_POWER_USAGE_BETWEEN.format(datetime, next_minute))
         if len(power_usage) == 0:
-            p.print_line('No power usage data available')
             exit()
         else:
             date_time = [data['datetime'] for data in power_usage]

@@ -3,7 +3,7 @@ from abc import ABC
 
 from core.Database import Database
 from core.Screen import Screen
-from features.predict.PredictModel import PredictModel
+from screen.operation.PredictModelScreen import PredictModelScreen
 from SQL.SQLQueries import DatabaseOperations as Query
 
 
@@ -26,13 +26,13 @@ class PredictScreen(Screen):
                         for index, sub_entry in enumerate(sub_entries):
                             model = sub_entry.name.split('.')[0]
 
-                            appliance_name = self.get_appliance(sub_entry.name)
+                            appliance = self.get_appliance(sub_entry.name)
 
-                            instance = PredictModel(entry.name + '/' + sub_entry.name, appliance_name)
+                            instance = PredictModelScreen(entry.name + '/' + sub_entry.name, appliance)
                             options.append({
                                 'key': str(index + 1),
                                 'text': model,
-                                'function': instance.run
+                                'function': instance.screen
                             })
 
             return options
