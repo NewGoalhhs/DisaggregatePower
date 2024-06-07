@@ -61,7 +61,7 @@ class PredictModel:
         power_usage = Database.query(Query.SELECT_ALL.format('PowerUsage'))
         # Get a random datetime from power_usage
         # random_datetime = random.Random().choice(power_usage)['datetime']
-        random_datetime = p.request_input('Enter a datetime: ')
+        random_datetime = p.request_input('Enter a datetime (%Y-%m-%d %H:%M:%S): ')
 
         if random_datetime == '':
             return self.ask_user_for_datetime_and_power_usage(p)
