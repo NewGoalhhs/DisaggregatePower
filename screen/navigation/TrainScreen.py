@@ -2,39 +2,42 @@ import os
 
 from core.Screen import Screen
 from features.train.TrainModel import TrainModel
+from screen.operation.TrainModelScreen import TrainModelScreen
+from app import __ROOT__
 
 
 class TrainScreen(Screen):
     def screen(self, p):
+        self.p = p
         p.reset_lines()
         p.open_options()
         for option in self.get_generate_options():
-            p.add_option(option['key'], option['text'], option['function'])
+            p.add_option(option['key'], option['text'], option['function'], option['args'])
         p.choose_option()
 
+    def choose_option(self, model_name):
+        module = __import__('MachineLearning.' + model_name, fromlist=[model_name])
+        model = getattr(module, model_name)
+        instance = TrainModelScreen(model)
+        instance.screen(p=self.p)
+
     def get_generate_options(self) -> list:
-        # Return a list of indexes and generate class options from features/generate
-        with os.scandir('MachineLearning') as entries:
+        with os.scandir(__ROOT__+'/MachineLearning') as entries:
             options = []
             index = 0
             for entry in entries:
-                if not entry.is_file():
+                if entry.is_dir():
                     continue
 
-
                 name = entry.name.split('.')[0]
-                module = __import__('MachineLearning.' + name,
-                                    fromlist=[name])
-                class_ = getattr(module, name)
-                model_instance = class_()
 
-                instance = TrainModel(model_instance)
                 options.append({
                     'key': str(index + 1),
                     'text': name,
-                    'function': instance.train
+                    'function': self.choose_option,
+                    'args': name
                 })
-                
+
                 index += 1
 
             return options

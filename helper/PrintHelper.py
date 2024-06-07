@@ -37,12 +37,13 @@ class PrintHelper(BasePrintHelper):
         print()
         self.options = {}
 
-    def add_option(self, key: str, text: str, function: callable):
+    def add_option(self, key: str, text: str, function: callable, args=None):
         print(self.get_color_code('reset') + f" [" + self.secondary_color + f"{key}" + self.get_color_code(
             'reset') + f"] " + self.primary_color + text)
         self.options[str(key)] = {
             'text': text,
-            'function': function
+            'function': function,
+            'args': args if args else []
         }
 
     def choose_option(self, text: str = 'Enter an option: '):
@@ -76,16 +77,22 @@ class PrintHelper(BasePrintHelper):
             elif (function is callable or
                   function is classmethod or
                   function is staticmethod or
-                  inspect.ismethod(function)):
+                  inspect.ismethod(function) or
+                    inspect.isfunction(function) or
+                    inspect.isbuiltin(function)):
                 if 'p' in inspect.getfullargspec(function).args:
                     return function(p=self)
+                if (len(inspect.getfullargspec(function).args) > 0):
+                    if 'args' in self.options[result].keys():
+                        return function(self.options[result]['args'])
+                    else:
+                        return function(None)
                 else:
                     return function()
             else:
                 return function
 
         else:
-            self.print_line('Invalid option')
             return self.choose_option()
 
     def reset_lines(self):
