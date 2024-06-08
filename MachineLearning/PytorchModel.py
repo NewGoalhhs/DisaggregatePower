@@ -23,7 +23,12 @@ class PytorchModel(MachineLearningModel):
         else:
             self.device = torch.device('cpu')
 
+        self.metrics = {
+            'accuracy': accuracy_score
+        }
+
         self.model = DeepBinaryClassifier(input_size, hidden_size, 1).to(self.device)
+        self.model.metrics = self.metrics
         self.criterion = nn.BCEWithLogitsLoss()
         self.optimizer = optim.Adam(self.model.parameters(), lr=0.001)
         self.scaler = StandardScaler()

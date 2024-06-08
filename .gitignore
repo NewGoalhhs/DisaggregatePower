@@ -12,3 +12,4 @@ identifier.sqlite
 *.pkl
 *.pt
 *.joblib
+*.mlmodel
