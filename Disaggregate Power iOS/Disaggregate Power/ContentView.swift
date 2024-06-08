@@ -9,54 +9,69 @@ import SwiftUI
 import CoreML
 
 struct ContentView: View {
-    @State private var probability: Int64 = 0
+    @State private var randomForestProbability: Int64 = 0
+    @State private var boostedTreeProbability: Int64 = 0
+    @State private var decisionTreeProbability: Int64 = 0
+    @State private var logisticRegressionProbability: Int64 = 0
     @State private var wattage: String = "0.0"
+    @State private var wattageValue: Double = 0.0
     @State private var date: Date = .now
     @FocusState private var focused: Bool
-    private var model2: Random_Forest_microwave_copy? = nil
+    private var randomForest: Random_Forest_microwave? = nil
+    private var boostedTree: Boosted_Tree_microwave? = nil
+    private var decisionTree: Decision_Tree_microwave? = nil
+    private var logisticRegression: Logistic_Regression_microwave? = nil
 
     init() {
         do {
-            self.model2 = try .init(configuration: .init())
+            self.randomForest = try .init(configuration: .init())
+            self.boostedTree = try .init(configuration: .init())
+            self.decisionTree = try .init(configuration: .init())
+            self.logisticRegression = try .init(configuration: .init())
         } catch {
             print(error.localizedDescription)
         }
     }
 
     var body: some View {
-        ZStack {
-            Group {
-                if probability == 0 {
-                    Color.red
-                } else {
-                    Color.green
+        VStack {
+            HStack {
+                TextField("Wattage: ", text: $wattage)
+                    .keyboardType(.decimalPad)
+                    .focused($focused)
+                    .onChange(of: wattage) { _, newValue in
+                        self.filterWattageInput(newValue)
+                        if let wattageDouble = Double(self.wattage) {
+                            self.wattageValue = wattageDouble
+                        }
+                        predict()
+                    }
+
+                DatePicker(selection: self.$date, displayedComponents: [.date, .hourAndMinute]) {
+
                 }
-            }.ignoresSafeArea()
+            }
+            .onChange(of: date) {
+                predict()
+            }
+
+            Slider(value: $wattageValue, in: 0...3000, step: 1)
+                .padding()
+                .onChange(of: wattageValue) {
+                    self.wattage = String(format: "%.1f", wattageValue)
+                    predict()
+                }
 
             VStack {
-                HStack {
-                    TextField("Wattage: ", text: $wattage)
-                        .keyboardType(.decimalPad)
-                        .focused($focused)
-
-                    DatePicker(selection: self.$date, displayedComponents: [.date, .hourAndMinute]) {
-
-                    }
-                }
-                .onChange(of: wattage) { _, newValue in
-                    self.filterWattageInput(newValue)
-                    predict()
-                }
-                .onChange(of: date) {
-                    predict()
-                }
-                Spacer()
+                PredictionView(modelName: "Random Forest", probability: randomForestProbability)
+                PredictionView(modelName: "Boosted Tree", probability: boostedTreeProbability)
+                PredictionView(modelName: "Decision Tree", probability: decisionTreeProbability)
+                PredictionView(modelName: "Logistic Regression", probability: logisticRegressionProbability)
             }
-            .padding()
+
+            Spacer()
         }
-//        .onTapGesture {
-//            self.focused = false
-//        }
+        .padding()
     }
 
     @MainActor
@@ -73,17 +88,42 @@ struct ContentView: View {
     func predict() {
         do {
             let calendar = Calendar.current
-            let components = calendar.dateComponents([.weekday, .hour, .minute], from: date)
+            var components = calendar.dateComponents([.weekday, .hour, .minute], from: date)
+
+            if let weekday = components.weekday {
+                components.weekday = (weekday + 5) % 7
+            }
 
             if let weekday = components.weekday, let hour = components.hour, let minute = components.minute {
-                print("Predicting with: \(Double(self.wattage) ?? 0), \(weekday), \(hour), \(minute)")
-                probability = try model2?.prediction(input: .init(power_usage: Double(self.wattage) ?? 0.0, weekday: Int64(weekday), hour: Int64(hour), minute: Int64(minute))).appliance_in_use ?? 0
+                print("Predicting with: \(wattageValue), \(weekday), \(hour), \(minute)")
+                randomForestProbability = try randomForest?.prediction(input: .init(power_usage: wattageValue, weekday: Int64(weekday), hour: Int64(hour), minute: Int64(minute))).appliance_in_use ?? 0
+                boostedTreeProbability = try boostedTree?.prediction(input: .init(power_usage: wattageValue, weekday: Int64(weekday), hour: Int64(hour), minute: Int64(minute))).appliance_in_use ?? 0
+                decisionTreeProbability = try decisionTree?.prediction(input: .init(power_usage: wattageValue, weekday: Int64(weekday), hour: Int64(hour), minute: Int64(minute))).appliance_in_use ?? 0
+                logisticRegressionProbability = try logisticRegression?.prediction(input: .init(power_usage: wattageValue, weekday: Int64(weekday), hour: Int64(hour), minute: Int64(minute))).appliance_in_use ?? 0
             } else {
                 print("Failed to extract date components")
             }
         } catch {
             print(error.localizedDescription)
         }
+    }
+}
+
+struct PredictionView: View {
+    var modelName: String
+    var probability: Int64
+
+    var body: some View {
+        HStack {
+            Text("\(modelName):")
+            Spacer()
+            Text("\(probability == 1 ? "In Use" : "Not In Use")")
+                .foregroundColor(probability == 1 ? .green : .red)
+        }
+        .padding()
+        .background(Color.gray.opacity(0.2))
+        .cornerRadius(10)
+        .padding(.horizontal)
     }
 }
 
