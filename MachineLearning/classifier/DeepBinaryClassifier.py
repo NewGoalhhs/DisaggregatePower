@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 
+
 class DeepBinaryClassifier(nn.Module):
     def __init__(self, input_size, hidden_sizes, out_size, dropout_prob=0.5):
         super(DeepBinaryClassifier, self).__init__()
@@ -31,3 +32,5 @@ class DeepBinaryClassifier(nn.Module):
     def set_sigmoid(self):
         self.function = nn.Sigmoid
 
+    def set_function(self, function):
+        self.function = function

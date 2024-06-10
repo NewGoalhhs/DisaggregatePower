@@ -121,6 +121,12 @@ class PowerUsageApplianceOperations:
     '''
     DROP_POWER_USAGE_APPLIANCE_TABLE = 'DROP TABLE PowerUsage_Appliance'
     INSERT_POWER_USAGE_APPLIANCE = 'INSERT INTO PowerUsage_Appliance (PowerUsage_id, Appliance_id, appliance_power) VALUES ("{}", "{}", "{}")'
+    SELECT_JOIN_POWER_USAGE_WHERE = '''
+        SELECT *
+        FROM PowerUsage_Appliance
+        JOIN PowerUsage ON PowerUsage_Appliance.PowerUsage_id = PowerUsage.id
+        WHERE {} = "{}"
+        '''
 
 
 class IsUsingApplianceOperations:

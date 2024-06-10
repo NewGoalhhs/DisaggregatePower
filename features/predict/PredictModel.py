@@ -56,15 +56,7 @@ class PredictModel:
         current = datetime.datetime.now()
         return current.year, current.month, current.day, current.hour, current.minute, current.second
 
-    def use_existing_data(self, p):
-        # Get a random timeframe of 1 minute
-        power_usage = Database.query(Query.SELECT_ALL.format('PowerUsage'))
-        # Get a random datetime from power_usage
-        # random_datetime = random.Random().choice(power_usage)['datetime']
-        random_datetime = p.request_input('Enter a datetime (%Y-%m-%d %H:%M:%S): ')
-
-        if random_datetime == '':
-            return self.ask_user_for_datetime_and_power_usage(p)
+    def use_existing_data(self, datetime):
         # Get the next minute from the random datetime
         next_minute = datetime.datetime.strptime(random_datetime, "%Y-%m-%d %H:%M:%S") + datetime.timedelta(minutes=1)
         # Get the power usage from the random datetime to the next minute
