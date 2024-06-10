@@ -82,3 +82,26 @@ class TrainModel:
         y = data['appliance_in_use']
         y_pred, _ = self.model.predict(data)
         return self.model.get_score(y, y_pred)
+
+    @staticmethod
+    def get_model_options() -> list:
+        with os.scandir(app.__ROOT__ + '/MachineLearning') as entries:
+            options = []
+            index = 0
+            for entry in entries:
+                if entry.is_dir():
+                    continue
+
+                name = entry.name.split('.')[0]
+
+                options.append(name)
+
+                index += 1
+
+            return options
+
+    @staticmethod
+    def get_model(model_name: str):
+        module = __import__('MachineLearning.' + model_name, fromlist=[model_name])
+        model = getattr(module, model_name)
+        return TrainModel(model())
