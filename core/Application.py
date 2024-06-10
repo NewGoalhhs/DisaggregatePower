@@ -1,5 +1,5 @@
 from helper.PrintHelper import PrintHelper
-from screen.HomeScreen import HomeScreen
+from screen.navigation.HomeScreen import HomeScreen
 
 
 class Application:

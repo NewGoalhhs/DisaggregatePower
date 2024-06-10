@@ -3,6 +3,7 @@ import os
 
 from core.Generate import Generate
 from core.Screen import Screen
+from core.TestResult import TestResult
 from helper.BasePrintHelper import BasePrintHelper
 from helper.LoadingBarHelper import LoadingBarHelper
 
@@ -26,18 +27,23 @@ class PrintHelper(BasePrintHelper):
     def print_line(self, text: str = ''):
         print(text)
 
+    def print_cut(self):
+        print(self.secondary_color + '-' * 50)
+        print(self.get_color_code('reset'))
+
     def open_options(self):
         print()
         print(self.secondary_color + '-' * 50)
         print()
         self.options = {}
 
-    def add_option(self, key: str, text: str, function: callable):
+    def add_option(self, key: str, text: str, function: callable, args=None):
         print(self.get_color_code('reset') + f" [" + self.secondary_color + f"{key}" + self.get_color_code(
             'reset') + f"] " + self.primary_color + text)
         self.options[str(key)] = {
             'text': text,
-            'function': function
+            'function': function,
+            'args': args if args else []
         }
 
     def choose_option(self, text: str = 'Enter an option: '):
@@ -45,7 +51,7 @@ class PrintHelper(BasePrintHelper):
         print(self.secondary_color + '-' * 50)
         print(self.get_color_code('reset'))
         # result = self.request_input('Enter an option: ', autocomplete=list(self.options.keys()))
-        result = self.request_input(text)
+        result = str(self.request_input(text))
 
         if result == 'exit':
             exit()
@@ -60,7 +66,7 @@ class PrintHelper(BasePrintHelper):
             else:
                 return self.home_screen.screen(p=self)
 
-        if result in self.options.keys():
+        if result in list(self.options.keys()):
             function = self.options[result]['function']
             if function is None:
                 return
@@ -71,20 +77,39 @@ class PrintHelper(BasePrintHelper):
             elif (function is callable or
                   function is classmethod or
                   function is staticmethod or
-                  inspect.ismethod(function)):
-                return function(p=self)
+                  inspect.ismethod(function) or
+                    inspect.isfunction(function) or
+                    inspect.isbuiltin(function)):
+                if 'p' in inspect.getfullargspec(function).args:
+                    return function(p=self)
+                if (len(inspect.getfullargspec(function).args) > 0):
+                    if 'args' in self.options[result].keys():
+                        return function(self.options[result]['args'])
+                    else:
+                        return function(None)
+                else:
+                    return function()
             else:
                 return function
 
         else:
-            self.print_line('Invalid option')
             return self.choose_option()
 
     def reset_lines(self):
         os.system('cls' if os.name == 'nt' else 'clear')
 
-    def request_input(self, text: str):
-        return input(text)
+    def request_input(self, text: str, condition=None, default='', message='Invalid input'):
+        if condition:
+            while True:
+                result = input(text)
+                if result == '':
+                    result = default
+                if condition(result):
+                    return result
+                else:
+                    self.print_line(message)
+        else:
+            return input(text)
 
     def get_loading_bar(self, text, goal, length=50) -> LoadingBarHelper:
         helper = LoadingBarHelper(text=text, goal=goal, length=length)

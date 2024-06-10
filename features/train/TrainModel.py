@@ -14,33 +14,42 @@ class TrainModel:
     def __init__(self, model):
         self.model = model
 
-    def train(self, p: PrintHelper):
-        appliance, epochs = self.prepare_train(p)
+    def train(self, appliance, epochs, print_progress: bool = True):
         appliance_id = appliance['id']
+
+        p = PrintHelper()
         lb = p.get_loading_bar(text="Training model", goal=6)
-        lb.set_status("Querying data")
+
+        if print_progress:
+            lb.set_status("Querying data")
         power_usage = Database.query(Query.SELECT_ALL.format('PowerUsage'))
-        lb.update()
+        if print_progress:
+            lb.update()
         appliance_in_use = Database.query(
             Query.SELECT_WHERE.format('IsUsingAppliance', 'Appliance_id', appliance_id))
-        lb.update()
+        if print_progress:
+            lb.update()
         power_usage = pd.DataFrame(power_usage)
         appliance_in_use = pd.DataFrame(appliance_in_use)
         appliance_power_usage_ids = set(appliance_in_use['PowerUsage_id'])
-        lb.update()
+        if print_progress:
+            lb.update()
 
         matches = power_usage['id'].isin(appliance_power_usage_ids)
         power_usage['IsUsingAppliance'] = matches.astype(int)
-        lb.update()
+        if print_progress:
+            lb.update()
 
         # Convert the string power_usage['datetime'] to int for training
-        lb.update()
+        if print_progress:
+            lb.update()
         data = {
             "datetime": power_usage.get('datetime'),
             "power_usage": power_usage.get('power_usage'),
             "appliance_in_use": power_usage.get('IsUsingAppliance')
         }
-        lb.finish()
+        if print_progress:
+            lb.finish()
 
         self.model.train(data, epochs=epochs)
 
@@ -51,34 +60,12 @@ class TrainModel:
         else:
             score = 1.0
 
-        self.model.save_model(self.get_save_path(score, appliance['name']))
+        save_path = self.get_save_path(score, appliance['name'])
+        self.model.save_model(save_path)
+        if print_progress:
+            p.print_line(f"Model saved at {save_path}")
 
-        p.print_line(f"Model saved at {self.get_save_path(score, appliance['name'])}")
-        p.request_input("Press enter to continue: ")
-
-        p.to_previous_screen()
-
-    def prepare_train(self, p):
-        appliances = Database.query(Query.SELECT_ALL.format('Appliance'))
-        p.print_line("All appliances:")
-        p.open_options()
-        for index, appliance in enumerate(appliances):
-            p.add_option(index+1, appliance['name'], appliance)
-        appliance = p.choose_option('Choose an appliance to train: ')
-
-        epochs = 100
-        while True:
-            epochs_str = p.request_input('Choose the amount of epochs to train [100]: ')
-            if epochs_str == "":
-                break
-            if epochs_str.isdigit():
-                epochs = int(epochs_str)
-                break
-            if not epochs_str.isdigit():
-                p.print_line("Please enter a valid number.")
-                continue
-
-        return appliance, epochs
+        return save_path
 
     def get_save_path(self, score, appliance):
         datetime_str = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")

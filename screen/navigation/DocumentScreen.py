@@ -3,11 +3,11 @@ from abc import ABC
 
 from core.Database import Database
 from core.Screen import Screen
-from features.predict.PredictModel import PredictModel
 from SQL.SQLQueries import DatabaseOperations as Query
+from screen.operation.DocumentModelScreen import DocumentModelScreen
 
 
-class PredictScreen(Screen):
+class DocumentScreen(Screen):
     def screen(self, p):
         p.reset_lines()
         p.open_options()
@@ -18,22 +18,27 @@ class PredictScreen(Screen):
 
     def get_generate_options(self, p) -> list:
         # Return a list of indexes and generate class options from features/generate
-        with os.scandir('MachineLearning/models') as entries:
+        with os.scandir('MachineLearning') as entries:
             options = []
+            index = 0
             for entry in entries:
-                if entry.is_dir():
-                    with os.scandir('MachineLearning/models/'+entry.name) as sub_entries:
-                        for index, sub_entry in enumerate(sub_entries):
-                            model = sub_entry.name.split('.')[0]
+                if not entry.is_file():
+                    continue
 
-                            appliance_name = self.get_appliance(sub_entry.name)
+                name = entry.name.split('.')[0]
+                module = __import__('MachineLearning.' + name,
+                                    fromlist=[name])
+                class_ = getattr(module, name)
+                model_instance = class_()
 
-                            instance = PredictModel(entry.name + '/' + sub_entry.name, appliance_name)
-                            options.append({
-                                'key': str(index + 1),
-                                'text': model,
-                                'function': instance.predict
-                            })
+                instance = DocumentModelScreen(model_instance)
+                options.append({
+                    'key': str(index + 1),
+                    'text': name,
+                    'function': instance
+                })
+
+                index += 1
 
             return options
 
