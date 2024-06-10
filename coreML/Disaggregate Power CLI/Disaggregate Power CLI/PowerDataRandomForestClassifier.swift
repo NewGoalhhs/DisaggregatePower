@@ -1,0 +1,63 @@
+//
+//  PowerDataRandomForestClassifier.swift
+//  Disaggregate Power CLI
+//
+//  Created by Reinder Noordmans on 08/06/2024.
+//
+
+import CreateML
+import Foundation
+import TabularData
+
+class PowerDataRandomForestClassifier: DPModel {
+    var model: MLRandomForestClassifier?
+
+    func trainModel(
+        targetColumn: String,
+        featureColumns: [String],
+        maxIterations: Int = 10,
+        maxDepth: Int = 6,
+        minLossReduction: Double = 0.0,
+        minChildWeight: Double = 0.1,
+        rowSubsample: Double = 0.8,
+        columnSubsample: Double = 0.8
+    ) throws {
+        let params = MLRandomForestClassifier.ModelParameters(
+            validation: .dataFrame(
+                validationData
+            ),
+            maxDepth: maxDepth,
+            maxIterations: maxIterations,
+            minLossReduction: minLossReduction,
+            minChildWeight: minChildWeight,
+            randomSeed: Int.random(
+                in: 0...1000
+            ),
+            rowSubsample: rowSubsample,
+            columnSubsample: columnSubsample
+        )
+
+        model = try MLRandomForestClassifier(
+            trainingData: trainingData,
+            targetColumn: targetColumn,
+            featureColumns: featureColumns,
+            parameters: params
+        )
+    }
+
+    func evaluateModel() throws -> MLClassifierMetrics {
+        guard let model = model else {
+            throw NSError(domain: "Model not trained or validation data not available", code: 1, userInfo: nil)
+        }
+        let evaluationMetrics = model.evaluation(on: validationData)
+        return evaluationMetrics
+    }
+
+    func saveModel(to path: String) throws {
+        guard let model = model else {
+            throw NSError(domain: "Model not trained", code: 1, userInfo: nil)
+        }
+        let modelURL = URL(fileURLWithPath: path)
+        try model.write(to: modelURL)
+    }
+}
