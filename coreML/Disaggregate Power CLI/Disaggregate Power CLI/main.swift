@@ -30,10 +30,10 @@ func main() {
     let featureColumns = ["power_usage", "weekday", "hour", "minute"]
 
     do {
-        let classifier = try PowerDataRandomForestClassifier(trainingDataPath: trainingDataPath)
+        let classifier = try PowerDataLogisticRegression(trainingDataPath: trainingDataPath)
 
         // Train the model
-        try classifier.trainModel(targetColumn: targetColumn, featureColumns: featureColumns, maxIterations: 20)
+        try classifier.train(targetColumn: targetColumn, featureColumns: featureColumns, maxIterations: 20, l1Penalty: 0.1, l2Penalty: 0.4, stepSize: 0.3, convergenceThreshold: 0.01, featureRescaling: true)
 
         // Evaluate the model
         let metrics = try classifier.evaluateModel()

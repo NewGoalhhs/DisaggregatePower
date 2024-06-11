@@ -12,7 +12,7 @@ import TabularData
 class PowerDataRandomForestClassifier: DPModel {
     var model: MLRandomForestClassifier?
 
-    func trainModel(
+    func train(
         targetColumn: String,
         featureColumns: [String],
         maxIterations: Int = 10,
