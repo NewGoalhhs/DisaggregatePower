@@ -4,11 +4,9 @@ from core.Generate import Generate
 from datetime import datetime
 from features.generate.synthetic.SyntheticBuilding import SyntheticBuilding
 from core.Database import Database
-from datetime import timedelta
 import random
 from SQL.SQLQueries import DatabaseOperations as Query
 from SQL.SQLQueries import PowerUsageApplianceOperations as PowerUsageApplianceQuery
-from helper.LoadingBarHelper import LoadingBarHelper
 
 
 class SimpleGenerate(Generate):

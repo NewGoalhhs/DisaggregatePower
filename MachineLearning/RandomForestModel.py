@@ -58,7 +58,7 @@ class RandomForestModel(MachineLearningModel):
     def load_model(self, path):
         self.model = joblib.load(path)
 
-    def train(self, data, test_size=0.2, random_state=42):
+    def train(self, data, test_size=0.2, random_state=42, epochs=100):
         X, y = self.preprocess_data(data)
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state)
 

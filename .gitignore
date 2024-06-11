@@ -12,3 +12,5 @@ identifier.sqlite
 *.pkl
 *.pt
 *.joblib
+src/*/*.png
+*.mlmodel

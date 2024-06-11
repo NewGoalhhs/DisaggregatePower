@@ -6,12 +6,10 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, accuracy_score
 import pandas as pd
-import numpy as np
 
 import app
 from MachineLearning.classifier.DeepBinaryClassifier import DeepBinaryClassifier
 from core.MachineLearningModel import MachineLearningModel
-import matplotlib.pyplot as plt
 
 class PytorchModel(MachineLearningModel):
     def __init__(self, input_size=5, hidden_size=None):
@@ -25,7 +23,12 @@ class PytorchModel(MachineLearningModel):
         else:
             self.device = torch.device('cpu')
 
+        self.metrics = {
+            'accuracy': accuracy_score
+        }
+
         self.model = DeepBinaryClassifier(input_size, hidden_size, 1).to(self.device)
+        self.model.metrics = self.metrics
         self.criterion = nn.BCEWithLogitsLoss()
         self.optimizer = optim.Adam(self.model.parameters(), lr=0.001)
         self.scaler = StandardScaler()
@@ -88,7 +91,7 @@ class PytorchModel(MachineLearningModel):
             predictions = torch.sigmoid(outputs) > 0.05  # Apply sigmoid and thresholding
             accuracy = (predictions == y_test).float().mean().item()
             print(f'Accuracy: {accuracy * 100:.2f}%')
-            print(classification_report(y_test.cpu().numpy(), predictions.cpu().numpy()))
+            print(classification_report(y_test.cpu().numpy(), predictions.cpu().numpy(), zero_division=1))
 
     def predict(self, data):
         X, _ = self.preprocess_data(data)

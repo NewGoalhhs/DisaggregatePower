@@ -2,20 +2,22 @@ from abc import abstractmethod
 
 
 class MachineLearningModel:
+
+    def __init__(self, print_progress):
+        self.print_progress = print_progress
+        pass
     @abstractmethod
     def preprocess_data(self, data) -> tuple:
         pass
 
-    @abstractmethod
     def save_model(self, model):
         pass
 
-    @abstractmethod
     def load_model(self, model):
         pass
 
     @abstractmethod
-    def train(self, data):
+    def train(self, data, epochs=100, print_progress=True):
         pass
 
     @abstractmethod
@@ -29,3 +31,6 @@ class MachineLearningModel:
     @abstractmethod
     def file_extension(self):
         pass
+
+    def get_document_parameters(self) -> dict:
+        return {}
