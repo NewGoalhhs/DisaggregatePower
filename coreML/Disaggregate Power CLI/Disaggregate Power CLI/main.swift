@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import CreateMLComponents
 
 func main() {
     // Ask for the input file path
@@ -33,7 +34,13 @@ func main() {
         let classifier = try PowerDataLogisticRegression(trainingDataPath: trainingDataPath)
 
         // Train the model
-        try classifier.train(targetColumn: targetColumn, featureColumns: featureColumns, maxIterations: 20, l1Penalty: 0.1, l2Penalty: 0.4, stepSize: 0.3, convergenceThreshold: 0.01, featureRescaling: true)
+        do {
+            try classifier.train(targetColumn: targetColumn, featureColumns: featureColumns, maxIterations: 100, l1Penalty: 0.0, l2Penalty: 1.0, stepSize: 0.3, convergenceThreshold: 1e-4, featureRescaling: true)
+        } catch {
+            if let error = error as? OptimizationError {
+                print(error.debugDescription)
+            }
+        }
 
         // Evaluate the model
         let metrics = try classifier.evaluateModel()

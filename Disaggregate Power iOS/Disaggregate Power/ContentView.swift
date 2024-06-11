@@ -9,25 +9,23 @@ import SwiftUI
 import CoreML
 
 struct ContentView: View {
-    @State private var randomForestProbability: Int64 = 0
-    @State private var boostedTreeProbability: Int64 = 0
-    @State private var decisionTreeProbability: Int64 = 0
-    @State private var logisticRegressionProbability: Int64 = 0
+    @State private var modelProbabilities: [String: [Int64: Double]] = [:]
     @State private var wattage: String = "0.0"
     @State private var wattageValue: Double = 0.0
     @State private var date: Date = .now
     @FocusState private var focused: Bool
-    private var randomForest: Random_Forest_microwave? = nil
-    private var boostedTree: Boosted_Tree_microwave? = nil
-    private var decisionTree: Decision_Tree_microwave? = nil
-    private var logisticRegression: Logistic_Regression_microwave? = nil
+
+    private var randomForest: Random_Forest_microwave?
+    private var boostedTree: Boosted_Tree_microwave?
+    private var decisionTree: Decision_Tree_microwave?
+    private var logisticRegression: Logistic_Regression_microwave?
 
     init() {
         do {
-            self.randomForest = try .init(configuration: .init())
-            self.boostedTree = try .init(configuration: .init())
-            self.decisionTree = try .init(configuration: .init())
-            self.logisticRegression = try .init(configuration: .init())
+            randomForest = try Random_Forest_microwave(configuration: .init())
+            boostedTree = try Boosted_Tree_microwave(configuration: .init())
+            decisionTree = try Decision_Tree_microwave(configuration: .init())
+            logisticRegression = try Logistic_Regression_microwave(configuration: .init())
         } catch {
             print(error.localizedDescription)
         }
@@ -40,16 +38,14 @@ struct ContentView: View {
                     .keyboardType(.decimalPad)
                     .focused($focused)
                     .onChange(of: wattage) { _, newValue in
-                        self.filterWattageInput(newValue)
-                        if let wattageDouble = Double(self.wattage) {
-                            self.wattageValue = wattageDouble
+                        filterWattageInput(newValue)
+                        if let wattageDouble = Double(wattage) {
+                            wattageValue = wattageDouble
                         }
                         predict()
                     }
 
-                DatePicker(selection: self.$date, displayedComponents: [.date, .hourAndMinute]) {
-
-                }
+                DatePicker(selection: $date, displayedComponents: [.date, .hourAndMinute]) {}
             }
             .onChange(of: date) {
                 predict()
@@ -58,18 +54,26 @@ struct ContentView: View {
             Slider(value: $wattageValue, in: 0...3000, step: 1)
                 .padding()
                 .onChange(of: wattageValue) {
-                    self.wattage = String(format: "%.1f", wattageValue)
+                    wattage = String(format: "%.2f", wattageValue)
                     predict()
                 }
 
-            VStack {
-                PredictionView(modelName: "Random Forest", probability: randomForestProbability)
-                PredictionView(modelName: "Boosted Tree", probability: boostedTreeProbability)
-                PredictionView(modelName: "Decision Tree", probability: decisionTreeProbability)
-                PredictionView(modelName: "Logistic Regression", probability: logisticRegressionProbability)
-            }
-
             Spacer()
+
+            VStack {
+                if let rfProbability = modelProbabilities["Random Forest"]?[1] {
+                    PredictionView(modelName: "Random Forest", probability: rfProbability)
+                }
+                if let btProbability = modelProbabilities["Boosted Tree"]?[1] {
+                    PredictionView(modelName: "Boosted Tree", probability: btProbability)
+                }
+                if let dtProbability = modelProbabilities["Decision Tree"]?[1] {
+                    PredictionView(modelName: "Decision Tree", probability: dtProbability)
+                }
+                if let lrProbability = modelProbabilities["Logistic Regression"]?[1] {
+                    PredictionView(modelName: "Logistic Regression", probability: lrProbability)
+                }
+            }
         }
         .padding()
     }
@@ -80,12 +84,12 @@ struct ContentView: View {
         filtered = filtered.filter { $0.isNumber || $0 == "." }
 
         if filtered != newValue {
-            self.wattage = filtered
+            wattage = filtered
         }
     }
 
     @MainActor
-    func predict() {
+    private func predict() {
         do {
             let calendar = Calendar.current
             var components = calendar.dateComponents([.weekday, .hour, .minute], from: date)
@@ -94,14 +98,31 @@ struct ContentView: View {
                 components.weekday = (weekday + 5) % 7
             }
 
-            if let weekday = components.weekday, let hour = components.hour, let minute = components.minute {
-                print("Predicting with: \(wattageValue), \(weekday), \(hour), \(minute)")
-                randomForestProbability = try randomForest?.prediction(input: .init(power_usage: wattageValue, weekday: Int64(weekday), hour: Int64(hour), minute: Int64(minute))).appliance_in_use ?? 0
-                boostedTreeProbability = try boostedTree?.prediction(input: .init(power_usage: wattageValue, weekday: Int64(weekday), hour: Int64(hour), minute: Int64(minute))).appliance_in_use ?? 0
-                decisionTreeProbability = try decisionTree?.prediction(input: .init(power_usage: wattageValue, weekday: Int64(weekday), hour: Int64(hour), minute: Int64(minute))).appliance_in_use ?? 0
-                logisticRegressionProbability = try logisticRegression?.prediction(input: .init(power_usage: wattageValue, weekday: Int64(weekday), hour: Int64(hour), minute: Int64(minute))).appliance_in_use ?? 0
-            } else {
+            guard let weekday = components.weekday,
+                  let hour = components.hour,
+                  let minute = components.minute else {
                 print("Failed to extract date components")
+                return
+            }
+
+            if let rf = randomForest {
+                let prediction = try rf.prediction(input: .init(power_usage: wattageValue, weekday: Int64(weekday), hour: Int64(hour), minute: Int64(minute)))
+                modelProbabilities["Random Forest"] = prediction.appliance_in_useProbability
+            }
+
+            if let bt = boostedTree {
+                let prediction = try bt.prediction(input: .init(power_usage: wattageValue, weekday: Int64(weekday), hour: Int64(hour), minute: Int64(minute)))
+                modelProbabilities["Boosted Tree"] = prediction.appliance_in_useProbability
+            }
+
+            if let dt = decisionTree {
+                let prediction = try dt.prediction(input: .init(power_usage: wattageValue, weekday: Int64(weekday), hour: Int64(hour), minute: Int64(minute)))
+                modelProbabilities["Decision Tree"] = prediction.appliance_in_useProbability
+            }
+
+            if let lr = logisticRegression {
+                let prediction = try lr.prediction(input: .init(power_usage: wattageValue, weekday: Int64(weekday), hour: Int64(hour), minute: Int64(minute)))
+                modelProbabilities["Logistic Regression"] = prediction.appliance_in_useProbability
             }
         } catch {
             print(error.localizedDescription)
@@ -111,14 +132,21 @@ struct ContentView: View {
 
 struct PredictionView: View {
     var modelName: String
-    var probability: Int64
+    var probability: Double
 
     var body: some View {
         HStack {
             Text("\(modelName):")
             Spacer()
-            Text("\(probability == 1 ? "In Use" : "Not In Use")")
-                .foregroundColor(probability == 1 ? .green : .red)
+            VStack(alignment: .trailing) {
+                Text("\(probability >= 0.5 ? "In Use" : "Not In Use")")
+                    .font(.headline)
+                    .foregroundColor(probability >= 0.5 ? .green : .red)
+
+                Text(probability.formatted(.percent))
+                    .font(.footnote)
+                    .foregroundColor(.gray)
+            }
         }
         .padding()
         .background(Color.gray.opacity(0.2))
