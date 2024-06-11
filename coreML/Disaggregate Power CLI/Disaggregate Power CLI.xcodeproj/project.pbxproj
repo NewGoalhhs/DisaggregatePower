@@ -31,14 +31,14 @@
 /* Begin PBXFileReference section */
 		4B968F572C14E74B00357E09 /* Disaggregate Power CLI */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "Disaggregate Power CLI"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4B968F5A2C14E74B00357E09 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
-		4B968F612C14E7BA00357E09 /* test_data.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test_data.csv; sourceTree = "<group>"; };
-		4B968F622C14E7BA00357E09 /* train_data.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = train_data.csv; sourceTree = "<group>"; };
 		4B968F642C14EFC600357E09 /* PowerDataRandomForestClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PowerDataRandomForestClassifier.swift; sourceTree = "<group>"; };
 		4B968F662C14F01D00357E09 /* PowerDataBoostedTreeClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PowerDataBoostedTreeClassifier.swift; sourceTree = "<group>"; };
 		4B968F682C14F0D100357E09 /* DPModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DPModel.swift; sourceTree = "<group>"; };
 		4B968F6A2C14F49F00357E09 /* PowerDataDecisionTreeClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PowerDataDecisionTreeClassifier.swift; sourceTree = "<group>"; };
 		4B968F6C2C14F5EB00357E09 /* PowerDataSupportVecotrMachine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PowerDataSupportVecotrMachine.swift; sourceTree = "<group>"; };
 		4B968F6E2C14F6B300357E09 /* PowerDataLogisticRegression.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PowerDataLogisticRegression.swift; sourceTree = "<group>"; };
+		4BDAE07C2C185DEF0009E7F7 /* train_data.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = train_data.csv; path = ../../../../Data/6/train_data.csv; sourceTree = "<group>"; };
+		4BDAE07D2C185DEF0009E7F7 /* test_data.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = test_data.csv; path = ../../../../Data/6/test_data.csv; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -86,8 +86,8 @@
 		4B968F632C14E7BA00357E09 /* Microwave */ = {
 			isa = PBXGroup;
 			children = (
-				4B968F612C14E7BA00357E09 /* test_data.csv */,
-				4B968F622C14E7BA00357E09 /* train_data.csv */,
+				4BDAE07D2C185DEF0009E7F7 /* test_data.csv */,
+				4BDAE07C2C185DEF0009E7F7 /* train_data.csv */,
 			);
 			path = Microwave;
 			sourceTree = "<group>";
