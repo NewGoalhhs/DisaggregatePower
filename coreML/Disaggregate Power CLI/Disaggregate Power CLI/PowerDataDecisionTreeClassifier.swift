@@ -31,7 +31,7 @@ class PowerDataDecisionTreeClassifier: DPModel {
             )
         )
 
-        model = try MLDecisionTreeClassifier(
+        model = try .init(
             trainingData: trainingData,
             targetColumn: targetColumn,
             featureColumns: featureColumns,
@@ -52,6 +52,6 @@ class PowerDataDecisionTreeClassifier: DPModel {
             throw NSError(domain: "Model not trained", code: 1, userInfo: nil)
         }
         let modelURL = URL(fileURLWithPath: path)
-        try model.write(to: modelURL)
+        try model.write(to: modelURL, metadata: metadata)
     }
 }
