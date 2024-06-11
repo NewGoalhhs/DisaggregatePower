@@ -1,6 +1,9 @@
 from dotenv import dotenv_values
 import sqlite3
+
+import app
 from SQL.SQLQueries import DatabaseOperations as Query
+
 
 class Database:
     def __init__(self):
@@ -8,32 +11,34 @@ class Database:
 
     @staticmethod
     def connection():
-        return sqlite3.connect(dotenv_values()['DB_DATABASE'])
+        database_name = app.__ROOT__ + '/' + dotenv_values()['DB_DATABASE']
+        return sqlite3.connect(database_name)
 
     @staticmethod
     def query(query):
         connection = Database.connection()
+        connection.row_factory = sqlite3.Row
         cursor = connection.cursor()
         cursor.execute(query)
         results = cursor.fetchall()
         connection.commit()
-        return results
+        return [dict(result) for result in results]
 
     @staticmethod
     def fetch_with(model, table_name, where=None):
         connection = Database.connection()
+        connection.row_factory = sqlite3.Row
         cursor = connection.cursor()
 
         query = Query.SELECT_ALL.format(table_name)
         if where:
             query = Query.SELECT_WHERE.format(table_name, ' AND '.join([f"{k} = %({k})s" for k in where.keys()]))
 
-        print(query)
         cursor.execute(query, where)
         results = []
         for result in cursor.fetchall():
             model_instance = model()
-            for key, value in result.items():
+            for key, value in dict(result).items():
                 setattr(model_instance, key, value)
             results.append(model_instance)
         connection.commit()

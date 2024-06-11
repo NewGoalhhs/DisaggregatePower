@@ -1,21 +1,40 @@
 import os
 
+from features.Classify.IsUsingAppliance import IsUsingAppliance
+
 from core.Database import Database
 from os import listdir
 from os.path import isfile, join
+
+from helper.LoadingBarHelper import LoadingBarHelper
+from SQL.SQLQueries import MigrationOperations as Query
+
 class Migrations:
     def __init__(self):
         self.db = Database()
 
-    def get_migration_files(self, path='migrations', max_depth=5):
+    def scan_migration_directory(self, path='migrations', max_depth=5, lb=None):
         migration_files = []
-
+        if lb:
+            lb.set_goal(lb.goal + len(list(os.scandir(path))))
         with os.scandir(path) as entries:
-            for entry in entries:
+            for index, entry in enumerate(entries):
+                if lb:
+                    lb.update(index)
                 if entry.is_file() and entry.name.endswith('.py'):
                     migration_files.append(path + '/' + entry.name)
                 if entry.is_dir():
-                    migration_files += self.get_migration_files(path + '/' + entry.name, max_depth - 1)
+                    migration_files += self.scan_migration_directory(path + '/' + entry.name, max_depth - 1, lb=lb)
+
+        return migration_files
+
+    def get_migration_files(self):
+
+        lb = LoadingBarHelper('Scanning migrations directory', 100, 0)
+
+        migration_files = self.scan_migration_directory(lb=lb)
+
+        lb.finish()
 
         migration_files.sort(
             key=lambda x: int(x.split('/')[-1][1:4]) if x.split('/')[-1][1:4].isdigit() else 0
@@ -26,7 +45,6 @@ class Migrations:
     def migrate(self):
         print('Migrating...')
 
-        print('Scanning migrations directory...')
         # Scan migrations directory for migration files
         migration_paths = self.get_migration_files()
 
@@ -35,10 +53,14 @@ class Migrations:
         migrations = []
 
         for migration_path in migration_paths:
-            print()
-            print('Running migration file: ' + migration_path)
-
             migration_path = migration_path.replace('/', '.').replace('\\', '.')[0:-3]
+            try:
+                if self.migration_has_run(migration_path):
+                    continue
+            except: # If the table doesn't exist
+                pass
+            lb = LoadingBarHelper(migration_path, 1, 0)
+
             migration_file = migration_path.split('.')[-1]
 
             # import the class from the file
@@ -55,23 +77,37 @@ class Migrations:
             #     print('Migration file: ' + migration_path + ' failed with error: ' + str(e))
 
             try:
+                lb.update(1)
                 migration.up()
                 migration.migrate()
             except Exception as e:
                 print('Migration file: ' + migration_path + ' failed with error: ' + str(e))
+            lb.finish()
 
             migrations.append(migration)
+            self.insert_migration(migration_path)
 
         for file in self.get_files():
-            print('Inserting data from file: ' + file + ' into database')
             for migration in migrations:
-                print('Inserting data into database using migration: ' + str(migration))
+                migration.add_loading_bar(LoadingBarHelper(file + ': ' + migration.__class__.__name__, 1, 0))
                 migration.reset_queries()
                 migration.insert(file)
                 migration.migrate()
 
+        is_using_appliance = IsUsingAppliance(self.db)
+
+        is_using_appliance.up()
+        is_using_appliance.insert()
+        is_using_appliance.migrate()
+
     def get_files(self):
-        dir = 'Data/'
+        directory = 'Data/'
 
         # load all the files in the directory
-        return [join(dir, f) for f in listdir(dir) if isfile(join(dir, f))]
+        return [join(directory, f) for f in listdir(directory) if isfile(join(directory, f))]
+
+    def insert_migration(self, migration_path):
+        self.db.query(Query.INSERT_MIGRATION.format(migration_path))
+
+    def migration_has_run(self, migration_path):
+        return bool(self.db.query(Query.SELECT_MIGRATION.format(migration_path)))
