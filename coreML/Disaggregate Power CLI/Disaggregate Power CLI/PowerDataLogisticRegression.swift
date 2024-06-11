@@ -24,7 +24,7 @@ class PowerDataLogisticRegression: DPModel {
     ) throws {
         let params = MLLogisticRegressionClassifier.ModelParameters(validation: .dataFrame(validationData), maxIterations: maxIterations, l1Penalty: l1Penalty, l2Penalty: l2Penalty, stepSize: stepSize, convergenceThreshold: convergenceThreshold, featureRescaling: featureRescaling)
 
-        model = try MLLogisticRegressionClassifier(
+        model = try .init(
             trainingData: trainingData,
             targetColumn: targetColumn,
             featureColumns: featureColumns,
@@ -45,6 +45,6 @@ class PowerDataLogisticRegression: DPModel {
             throw NSError(domain: "Model not trained", code: 1, userInfo: nil)
         }
         let modelURL = URL(fileURLWithPath: path)
-        try model.write(to: modelURL)
+        try model.write(to: modelURL, metadata: metadata)
     }
 }

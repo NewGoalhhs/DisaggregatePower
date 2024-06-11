@@ -10,10 +10,18 @@ import CreateML
 import TabularData
 
 class DPModel {
+    var metadata: MLModelMetadata
+
     let trainingData: DataFrame
     let validationData: DataFrame
 
     init(trainingDataPath: URL) throws {
+        self.metadata = .init()
+        self.metadata.author = "Reinder Noordans"
+        self.metadata.additional = [
+            "com.apple.coreml.model.preview.type": "tabularClassifier"
+        ]
+
         let data = try Data(contentsOf: trainingDataPath)
         let csvData = try DataFrame(csvData: data)
         let (trainData, valData) = csvData.randomSplit(by: 0.8, seed: 42)
