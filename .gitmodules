@@ -1,0 +1,3 @@
+[submodule "DisaggregatePowerWebApp"]
+	path = DisaggregatePowerWebApp
+	url = git@github.com:NewGoalhhs/DisaggregatePowerWebApp.git
