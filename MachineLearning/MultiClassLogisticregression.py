@@ -60,6 +60,18 @@ model = tf.keras.models.load_model('multiclass_appliance_model.h5')
 
 # Predict and evaluate
 y_pred = model.predict(X_test)
-y_pred = (y_pred > 0.5).astype(int)  # Thresholding
-# Print the first 10 predictions
-print(mlb.inverse_transform(y_pred[:10]))
+y_pred = (y_pred > 0.5).astype(int)  # Convert probabilities to binary predictions
+y_pred = mlb.inverse_transform(y_pred)  # Convert binary predictions to appliance lists
+y_test = mlb.inverse_transform(y_test)  # Convert binary labels to appliance lists
+
+# Calculate accuracy
+correct = 0
+total = 0
+for pred, actual in zip(y_pred, y_test):
+    if pred == actual:
+        correct += 1
+    total += 1
+
+accuracy = correct / total
+
+print(f'Test Accuracy: {accuracy}')
