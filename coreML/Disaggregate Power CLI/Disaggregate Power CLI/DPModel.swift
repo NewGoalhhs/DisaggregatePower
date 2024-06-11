@@ -7,6 +7,7 @@
 
 import Foundation
 import CreateML
+import CreateMLComponents
 import TabularData
 
 class DPModel {

@@ -12,7 +12,7 @@ import CreateML
 class PowerDataBoostedTreeClassifier: DPModel {
     var model: MLBoostedTreeClassifier?
 
-    func trainModel(
+    func train(
         targetColumn: String,
         featureColumns: [String],
         maxIterations: Int = 10,

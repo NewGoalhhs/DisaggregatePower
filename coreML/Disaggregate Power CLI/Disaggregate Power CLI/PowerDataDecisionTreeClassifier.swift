@@ -12,7 +12,7 @@ import CreateML
 class PowerDataDecisionTreeClassifier: DPModel {
     var model: MLDecisionTreeClassifier?
 
-    func trainModel(
+    func train(
         targetColumn: String,
         featureColumns: [String],
         maxDepth: Int = 6,

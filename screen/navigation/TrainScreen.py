@@ -11,8 +11,13 @@ class TrainScreen(Screen):
         self.p = p
         p.reset_lines()
         p.open_options()
-        for option in self.get_generate_options():
-            p.add_option(option['key'], option['text'], option['function'], option['args'])
+        for index, option in enumerate(TrainModel.get_model_options()):
+            p.add_option(
+                option,
+                option,
+                lambda: self.choose_option(option),
+                option
+            )
         p.choose_option()
 
     def choose_option(self, model_name):
@@ -20,27 +25,6 @@ class TrainScreen(Screen):
         model = getattr(module, model_name)
         instance = TrainModelScreen(model)
         instance.screen(p=self.p)
-
-    def get_generate_options(self) -> list:
-        with os.scandir(__ROOT__+'/MachineLearning') as entries:
-            options = []
-            index = 0
-            for entry in entries:
-                if entry.is_dir():
-                    continue
-
-                name = entry.name.split('.')[0]
-
-                options.append({
-                    'key': str(index + 1),
-                    'text': name,
-                    'function': self.choose_option,
-                    'args': name
-                })
-
-                index += 1
-
-            return options
 
     def simple_generate(self):
         pass
