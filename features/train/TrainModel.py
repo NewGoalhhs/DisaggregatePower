@@ -15,55 +15,16 @@ class TrainModel:
         self.model = model
 
     def train(self, appliance, epochs, print_progress: bool = True):
-        appliance_id = appliance['id']
 
-        p = PrintHelper()
-        lb = p.get_loading_bar(text="Training model", goal=6)
-
-        if print_progress:
-            lb.set_status("Querying data")
-        power_usage = Database.query(Query.SELECT_ALL.format('PowerUsage'))
-        if print_progress:
-            lb.update()
-        appliance_in_use = Database.query(
-            Query.SELECT_WHERE.format('IsUsingAppliance', 'Appliance_id', appliance_id))
-        if print_progress:
-            lb.update()
-        power_usage = pd.DataFrame(power_usage)
-        appliance_in_use = pd.DataFrame(appliance_in_use)
-        appliance_power_usage_ids = set(appliance_in_use['PowerUsage_id'])
-        if print_progress:
-            lb.update()
-
-        matches = power_usage['id'].isin(appliance_power_usage_ids)
-        power_usage['IsUsingAppliance'] = matches.astype(int)
-        if print_progress:
-            lb.update()
-
-        # Convert the string power_usage['datetime'] to int for training
-        if print_progress:
-            lb.update()
-        data = {
-            "datetime": power_usage.get('datetime'),
-            "power_usage": power_usage.get('power_usage'),
-            "appliance_in_use": power_usage.get('IsUsingAppliance')
-        }
-        if print_progress:
-            lb.finish()
+        data = self.get_training_data(appliance)
 
         self.model.train(data, epochs=epochs)
 
         # Immediately let the model predict to get a score
         score = self.get_model_score(data)
-        if score is not None:
-            p.print_line(f"Model score: {score}")
-        else:
-            score = 1.0
 
         save_path = self.get_save_path(score, appliance['name'])
         self.model.save_model(save_path)
-        if print_progress:
-            p.print_line(f"Model saved at {save_path}")
 
         return save_path
 
@@ -105,3 +66,25 @@ class TrainModel:
         module = __import__('MachineLearning.' + model_name, fromlist=[model_name])
         model = getattr(module, model_name)
         return TrainModel(model())
+
+    @classmethod
+    def get_training_data(cls, appliance):
+        appliance_id = appliance['id']
+
+        power_usage = Database.query(Query.SELECT_ALL.format('PowerUsage'))
+
+        appliance_in_use = Database.query(
+            Query.SELECT_WHERE.format('IsUsingAppliance', 'Appliance_id', appliance_id))
+
+        power_usage = pd.DataFrame(power_usage)
+        appliance_in_use = pd.DataFrame(appliance_in_use)
+        appliance_power_usage_ids = set(appliance_in_use['PowerUsage_id'])
+
+        matches = power_usage['id'].isin(appliance_power_usage_ids)
+        power_usage['IsUsingAppliance'] = matches.astype(int)
+
+        return {
+            "datetime": power_usage.get('datetime'),
+            "power_usage": power_usage.get('power_usage'),
+            "appliance_in_use": power_usage.get('IsUsingAppliance')
+        }

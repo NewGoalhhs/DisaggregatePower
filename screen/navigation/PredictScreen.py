@@ -3,6 +3,7 @@ from abc import ABC
 
 from core.Database import Database
 from core.Screen import Screen
+from features.predict.PredictModel import PredictModel
 from screen.operation.PredictModelScreen import PredictModelScreen
 from SQL.SQLQueries import DatabaseOperations as Query
 
@@ -19,7 +20,7 @@ class PredictScreen(Screen):
 
     def choose_option(self, args):
         entry, sub_entry = args
-        appliance = self.get_appliance(sub_entry.name)
+        appliance = PredictModel.get_appliance(sub_entry.name)
         instance = PredictModelScreen(entry.name + '/' + sub_entry.name, appliance)
         instance.screen(p=self.p)
 
@@ -45,15 +46,4 @@ class PredictScreen(Screen):
     def simple_generate(self):
         pass
 
-    def get_appliance(self, file_name, additional=''):
-        if not file_name:
-            return ''
 
-        split_entry = file_name.split('.')[0]
-        appliance_name = split_entry.split('_')[-1] + additional
-        appliance = Database.query(Query.SELECT_WHERE.format('Appliance', 'name', appliance_name))
-        if len(appliance) > 0:
-            return appliance[0]
-        else:
-            handling = split_entry.replace('_' + appliance_name, '')
-            return self.get_appliance(handling, '_' + appliance_name)
