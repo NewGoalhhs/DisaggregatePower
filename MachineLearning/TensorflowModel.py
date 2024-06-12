@@ -9,8 +9,10 @@ import pandas as pd
 import numpy as np
 from core.MachineLearningModel import MachineLearningModel
 
+
 class TensorflowModel(MachineLearningModel):
-    def __init__(self, input_size=5, hidden_size=None):
+    def __init__(self, print_progress=True, input_size=5, hidden_size=None):
+        super().__init__(print_progress)
         if hidden_size is None:
             hidden_size = [64, 32, 16]
 
