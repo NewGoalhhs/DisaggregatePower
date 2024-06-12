@@ -12,7 +12,7 @@ from helper.PrintHelper import PrintHelper
 
 class TrainModel:
     def __init__(self, model):
-        self.model = model()
+        self.model = model
 
     def train(self, appliance, epochs, print_progress: bool = True):
 

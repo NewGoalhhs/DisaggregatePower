@@ -5,7 +5,7 @@ from screen.abstract.AbstractModelScreen import AbstractModelScreen
 class TrainModelScreen(AbstractModelScreen):
     def __init__(self, model):
         super().__init__()
-        self.train_model = TrainModel(model)
+        self.train_model = TrainModel(model())
 
     def screen(self, p):
         p.print_heading('Train Model')
