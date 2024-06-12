@@ -8,6 +8,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, accuracy_score
 import pandas as pd
+import coremltools as ct
 
 import app
 from MachineLearning.classifier.DeepBinaryClassifier import DeepBinaryClassifier
@@ -50,11 +51,12 @@ class PytorchModel(MachineLearningModel):
         self.model.metrics = self.metrics
 
         self.criterion = nn.BCEWithLogitsLoss()
-        self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
+        self.optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
         self.scaler = StandardScaler()
 
     def preprocess_data(self, data, fit_scaler=False):
         df = pd.DataFrame(data)
+        self.data = df
         df['datetime'] = pd.to_datetime(df['datetime'], format='%Y-%m-%d %H:%M:%S')
 
         # Extract additional time features
@@ -83,6 +85,12 @@ class PytorchModel(MachineLearningModel):
     def save_model(self, path):
         os.makedirs(os.path.dirname(path), exist_ok=True)
         torch.save(self.model.state_dict(), path)
+
+        coreml_path = path.replace('.pt', '.mlpackage').replace('PytorchModel', 'CoreMLModel')
+        # Save the CoreML model
+        example_input, _ = self.preprocess_data(self.data.head(1))
+        coreml_model = self.convert_to_coreml(example_input)
+        coreml_model.save(coreml_path)
 
     def load_model(self, path):
         self.model.load_state_dict(torch.load(path))
@@ -149,17 +157,23 @@ class PytorchModel(MachineLearningModel):
             'accuracy': self.accuracy
         }
 
+    def convert_to_coreml(self, input_example):
+        self.model.eval()
+        traced_model = torch.jit.trace(self.model, input_example)
+        mlmodel = ct.convert(traced_model, inputs=[ct.TensorType(name="input", shape=input_example.shape)])
+        return mlmodel
+
 
 if __name__ == '__main__':
     # Generate a date range
     date_range = pd.date_range(start='2023-01-01', end='2023-01-31', freq='H')
 
     # Generate random power usage data
-    np.random.seed(42)  # For reproducibility
-    power_usage = np.random.normal(loc=100, scale=20, size=len(date_range))  # Normally distributed data
+    np.random.seed(42)
+    power_usage = np.random.normal(loc=100, scale=20, size=len(date_range))
 
     # Generate random appliance usage data
-    appliance_in_use = np.random.choice([0, 1], size=len(date_range), p=[0.7, 0.3])  # 30% chance of being in use
+    appliance_in_use = np.random.choice([0, 1], size=len(date_range), p=[0.7, 0.3])
 
     # Create a DataFrame
     data = pd.DataFrame({
@@ -167,9 +181,16 @@ if __name__ == '__main__':
         'power_usage': power_usage,
         'appliance_in_use': appliance_in_use
     })
+
     model = PytorchModel()
     model.train(data)
-    predictions = model.predict(data)
-    print(predictions[:10])
-    score = model.get_score(data['appliance_in_use'], predictions)
-    print(score)
+
+    # Prepare an example input for tracing
+    example_input, _ = model.preprocess_data(data.head(1))
+
+    # Convert to CoreML
+    coreml_model = model.convert_to_coreml(example_input)
+
+    # Save the CoreML model
+    coreml_model.save('DeepBinaryClassifier.mlpackage')
+    print("CoreML model saved as 'DeepBinaryClassifier.mlpackage'")
