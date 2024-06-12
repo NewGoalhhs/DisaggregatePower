@@ -1,0 +1,24 @@
+{
+    "fileFormatVersion": "1.0.0",
+    "itemInfoEntries": {
+        "7393B433-CD75-41CE-AC3C-CAA672CF8370": {
+            "author": "com.apple.CoreML",
+            "description": "CoreML Model Specification",
+            "name": "Logistic Regression microwave.mlmodel",
+            "path": "com.apple.CoreML/Logistic Regression microwave.mlmodel"
+        },
+        "77FFE2C3-B7EC-425E-8AB8-08D4779784D0": {
+            "author": "com.apple.CoreML",
+            "description": "External Metadata Overlay",
+            "name": "Metadata.json",
+            "path": "com.apple.CoreML/Metadata.json"
+        },
+        "AB183BA4-F67A-4E01-8A61-D799736213B0": {
+            "author": "com.apple.CoreML",
+            "description": "External FeatureDescription Overlay",
+            "name": "FeatureDescriptions.json",
+            "path": "com.apple.CoreML/FeatureDescriptions.json"
+        }
+    },
+    "rootModelIdentifier": "7393B433-CD75-41CE-AC3C-CAA672CF8370"
+}

@@ -50,7 +50,7 @@ class PytorchModel(MachineLearningModel):
         self.model.metrics = self.metrics
 
         self.criterion = nn.BCEWithLogitsLoss()
-        self.optimizer = optim.Adam(self.model.parameters(), lr=0.001)
+        self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
         self.scaler = StandardScaler()
 
     def preprocess_data(self, data, fit_scaler=False):

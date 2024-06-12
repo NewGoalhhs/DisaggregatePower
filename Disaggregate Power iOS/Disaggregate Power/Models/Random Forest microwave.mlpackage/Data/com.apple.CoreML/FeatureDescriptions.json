@@ -1,0 +1,27 @@
+{
+  "Outputs" : {
+    "appliance_in_useProbability" : {
+      "MLFeatureShortDescription" : "--"
+    },
+    "appliance_in_use" : {
+      "MLFeatureShortDescription" : "--"
+    }
+  },
+  "Inputs" : {
+    "power_usage" : {
+      "MLFeatureShortDescription" : "--"
+    },
+    "minute" : {
+      "MLFeatureShortDescription" : "--"
+    },
+    "weekday" : {
+      "MLFeatureShortDescription" : "--"
+    },
+    "hour" : {
+      "MLFeatureShortDescription" : "--"
+    }
+  },
+  "TrainingInputs" : {
+
+  }
+}
