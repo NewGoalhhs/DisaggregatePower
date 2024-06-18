@@ -17,8 +17,6 @@ def start_predicting():
 
         data = request.get_json()
 
-        print(data)
-
         _datetime = data['datetime']
         main_power = [float(x) for x in data['main_power']]
 

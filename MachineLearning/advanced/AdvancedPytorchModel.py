@@ -19,7 +19,7 @@ class AdvancedPytorchModel(MachineLearningModel):
 
         # Training parameters
         if hidden_size is None:
-            self.hidden_size = [52, 79, 52, 27]
+            self.hidden_size = [52 * output_size, 79 * output_size, 52 * output_size, 27 * output_size]
         else:
             self.hidden_size = hidden_size
 

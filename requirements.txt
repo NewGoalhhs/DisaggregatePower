@@ -9,4 +9,5 @@ joblib~=1.4.2
 torch~=2.3.0
 tensorflow~=2.8.0
 Flask~=3.0.3
+flask-cors~=3.1.1
 python-docx
