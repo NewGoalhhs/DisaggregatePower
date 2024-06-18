@@ -71,9 +71,9 @@ class DocumentModel:
         return self.train_model.train(appliance, epochs, print_progress)
 
 
-    def predict(self, model_path, appliance, datetime, power_usage, appliance_in_use, print_progress: bool = True, show_plot: bool = True):
+    def predict(self, model_path, appliance, datetime, power_usage, appliance_in_use, show_plot: bool = True):
         predict_model = PredictModel(model_path, appliance)
-        predictions, probabilities = predict_model.predict(datetime, power_usage, appliance_in_use, print_progress)
+        predictions, probabilities = predict_model.predict(datetime, power_usage, appliance_in_use)
         return predict_model.visualize(predictions, appliance_in_use, probabilities, show_plot)
 
     def generate_document(self, image_path=None, chosen_datetime=None, appliance=None, custom_parameters: dict = None):

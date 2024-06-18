@@ -9,12 +9,20 @@ from screen.operation.DocumentModelScreen import DocumentModelScreen
 
 class DocumentScreen(Screen):
     def screen(self, p):
+        self.p = p
         p.reset_lines()
         p.open_options()
         p.print_line("Which model do you want to use?")
         for option in self.get_generate_options(p):
-            p.add_option(option['key'], option['text'], option['function'])
+            p.add_option(option['key'], option['text'], option['function'], option['args'])
         p.choose_option()
+
+    def choose_option(self, model_name):
+        module = __import__('MachineLearning.' + model_name, fromlist=[model_name])
+        model = getattr(module, model_name)
+        instance = DocumentModelScreen(model)
+        instance.screen(p=self.p)
+
 
     def get_generate_options(self, p) -> list:
         # Return a list of indexes and generate class options from features/generate
@@ -26,16 +34,11 @@ class DocumentScreen(Screen):
                     continue
 
                 name = entry.name.split('.')[0]
-                module = __import__('MachineLearning.' + name,
-                                    fromlist=[name])
-                class_ = getattr(module, name)
-                model_instance = class_()
-
-                instance = DocumentModelScreen(model_instance)
                 options.append({
                     'key': str(index + 1),
                     'text': name,
-                    'function': instance
+                    'function': self.choose_option,
+                    'args': name
                 })
 
                 index += 1

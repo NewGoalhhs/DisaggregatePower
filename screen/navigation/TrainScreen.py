@@ -13,7 +13,7 @@ class TrainScreen(Screen):
         p.open_options()
         for index, option in enumerate(TrainModel.get_model_options()):
             p.add_option(
-                index+1,
+                str(index+1),
                 option,
                 lambda: self.choose_option(option),
                 option
