@@ -12,4 +12,4 @@ class Api:
 
     def run(self):
         self.router.init_routes()
-        self.app.run(host='0.0.0.0')
+        self.app.run(host='0.0.0.0', port=4201)
