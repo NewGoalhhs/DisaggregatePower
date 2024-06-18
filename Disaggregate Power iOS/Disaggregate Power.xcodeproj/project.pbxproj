@@ -13,6 +13,7 @@
 		4B076C472C19AFDF00B83378 /* Random Forest microwave.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = 4B076C462C19AFDF00B83378 /* Random Forest microwave.mlpackage */; };
 		4B43B4402C2194CD0088196D /* dishwasher-microwave-airconditioning.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 4B43B43F2C2194CD0088196D /* dishwasher-microwave-airconditioning.mlmodel */; };
 		4B747FA02C15036C005CC3B1 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B747F9F2C15036C005CC3B1 /* ContentView.swift */; };
+		4B96BF272C21A94B004C0840 /* Torch dishwasher-microwave-airconditioning.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = 4B96BF262C21A94B004C0840 /* Torch dishwasher-microwave-airconditioning.mlpackage */; };
 		4B9F50E92C130C8300452464 /* Disaggregate_PowerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B9F50E82C130C8300452464 /* Disaggregate_PowerApp.swift */; };
 		4B9F50ED2C130C8400452464 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4B9F50EC2C130C8400452464 /* Assets.xcassets */; };
 		4B9F50F02C130C8400452464 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4B9F50EF2C130C8400452464 /* Preview Assets.xcassets */; };
@@ -25,6 +26,7 @@
 		4B076C462C19AFDF00B83378 /* Random Forest microwave.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; path = "Random Forest microwave.mlpackage"; sourceTree = "<group>"; };
 		4B43B43F2C2194CD0088196D /* dishwasher-microwave-airconditioning.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = "dishwasher-microwave-airconditioning.mlmodel"; sourceTree = "<group>"; };
 		4B747F9F2C15036C005CC3B1 /* ContentView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		4B96BF262C21A94B004C0840 /* Torch dishwasher-microwave-airconditioning.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; path = "Torch dishwasher-microwave-airconditioning.mlpackage"; sourceTree = "<group>"; };
 		4B9F50E52C130C8300452464 /* Disaggregate Power.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Disaggregate Power.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4B9F50E82C130C8300452464 /* Disaggregate_PowerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Disaggregate_PowerApp.swift; sourceTree = "<group>"; };
 		4B9F50EC2C130C8400452464 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -45,6 +47,7 @@
 		4B747F962C1501AF005CC3B1 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				4B96BF262C21A94B004C0840 /* Torch dishwasher-microwave-airconditioning.mlpackage */,
 				4B43B43F2C2194CD0088196D /* dishwasher-microwave-airconditioning.mlmodel */,
 				4B076C402C19AF7E00B83378 /* Boosted Tree microwave.mlpackage */,
 				4B076C422C19AFD400B83378 /* Decision Tree microwave.mlpackage */,
@@ -166,6 +169,7 @@
 				4B747FA02C15036C005CC3B1 /* ContentView.swift in Sources */,
 				4B9F50E92C130C8300452464 /* Disaggregate_PowerApp.swift in Sources */,
 				4B076C432C19AFD400B83378 /* Decision Tree microwave.mlpackage in Sources */,
+				4B96BF272C21A94B004C0840 /* Torch dishwasher-microwave-airconditioning.mlpackage in Sources */,
 				4B076C472C19AFDF00B83378 /* Random Forest microwave.mlpackage in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

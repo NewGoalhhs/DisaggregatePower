@@ -7,6 +7,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, accuracy_score
 import pandas as pd
+import coremltools as ct
 
 from MachineLearning.classifier.DeepBinaryClassifier import DeepBinaryClassifier
 from MachineLearning.classifier.DeepBinaryMultiClassifier import DeepBinaryMultiClassifier
@@ -54,6 +55,7 @@ class AdvancedPytorchModel(MachineLearningModel):
 
     def preprocess_data(self, data, fit_scaler=False):
         df = pd.DataFrame(data)
+        self.data = df
         df['datetime'] = pd.to_datetime(df['datetime'], format='%Y-%m-%d %H:%M:%S')
 
         # Extract additional time features
@@ -87,6 +89,12 @@ class AdvancedPytorchModel(MachineLearningModel):
     def save_model(self, path):
         os.makedirs(os.path.dirname(path), exist_ok=True)
         torch.save(self.model.state_dict(), path)
+
+        coreml_path = path.replace('.pt', '.mlpackage').replace('PytorchModel', 'CoreMLModel')
+        # Save the CoreML model
+        example_input, _ = self.preprocess_data(self.data.head(1))
+        coreml_model = self.convert_to_coreml(example_input)
+        coreml_model.save(coreml_path)
 
     def load_model(self, path):
         self.model.load_state_dict(torch.load(path))
@@ -151,3 +159,9 @@ class AdvancedPytorchModel(MachineLearningModel):
             'random_state': self.random_state,
             'accuracy': self.accuracy
         }
+
+    def convert_to_coreml(self, input_example):
+        self.model.eval()
+        traced_model = torch.jit.trace(self.model, input_example)
+        mlmodel = ct.convert(traced_model, inputs=[ct.TensorType(name="input", shape=input_example.shape)])
+        return mlmodel

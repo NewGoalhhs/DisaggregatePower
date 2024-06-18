@@ -11,6 +11,7 @@ import CoreML
 private enum mlType: String {
     case microwave = "Microwave"
     case multiclass = "Multiclass"
+    case torchMulticlass = "Torch Multiclass"
 }
 
 struct ContentView: View {
@@ -28,6 +29,7 @@ struct ContentView: View {
     private var logisticRegression: Logistic_Regression_microwave?
 
     private var multiclass: dishwasher_microwave_airconditioning?
+    private var torch: Torch_dishwasher_microwave_airconditioning?
 
     init() {
         do {
@@ -36,6 +38,7 @@ struct ContentView: View {
             decisionTree = try Decision_Tree_microwave(configuration: .init())
             logisticRegression = try Logistic_Regression_microwave(configuration: .init())
             multiclass = try dishwasher_microwave_airconditioning(configuration: .init())
+            torch = try Torch_dishwasher_microwave_airconditioning(configuration: .init())
         } catch {
             print(error.localizedDescription)
         }
@@ -71,6 +74,7 @@ struct ContentView: View {
             Picker(selection: $type, label: Text("Model Type")) {
                 Text(mlType.microwave.rawValue).tag(mlType.microwave)
                 Text(mlType.multiclass.rawValue).tag(mlType.multiclass)
+                Text(mlType.torchMulticlass.rawValue).tag(mlType.torchMulticlass)
             }
             .pickerStyle(SegmentedPickerStyle())
             .padding()
@@ -82,7 +86,8 @@ struct ContentView: View {
 
             ScrollView {
                 VStack {
-                    if type == .microwave {
+                    switch type {
+                    case .microwave:
                         if let rfProbability = modelProbabilities["Random Forest"]?[1] {
                             PredictionView(modelName: "Random Forest", probability: rfProbability)
                         }
@@ -95,7 +100,7 @@ struct ContentView: View {
                         if let lrProbability = modelProbabilities["Logistic Regression"]?[1] {
                             PredictionView(modelName: "Logistic Regression", probability: lrProbability)
                         }
-                    } else if type == .multiclass {
+                    case .multiclass, .torchMulticlass:
                         HighestProbabilityView(probabilities: multiclassProbability)
                     }
                 }
@@ -131,7 +136,8 @@ struct ContentView: View {
                 return
             }
 
-            if type == .microwave {
+            switch type {
+            case .microwave:
                 if let rf = randomForest {
                     let prediction = try rf.prediction(input: .init(power_usage: wattageValue, weekday: Int64(weekday), hour: Int64(hour), minute: Int64(minute)))
                     modelProbabilities["Random Forest"] = prediction.appliance_in_useProbability
@@ -151,10 +157,20 @@ struct ContentView: View {
                     let prediction = try lr.prediction(input: .init(power_usage: wattageValue, weekday: Int64(weekday), hour: Int64(hour), minute: Int64(minute)))
                     modelProbabilities["Logistic Regression"] = prediction.appliance_in_useProbability
                 }
-            } else if type == .multiclass {
+            case .multiclass:
                 if let mc = multiclass {
                     let prediction = try mc.prediction(input: .init(power_usage: wattageValue, weekday: Int64(weekday), hour: Int64(hour), minute: Int64(minute)))
                     multiclassProbability = prediction.appliances_in_useProbability
+                }
+            case .torchMulticlass:
+                if let tmc = torch {
+                    let inputArray = try! MLMultiArray(shape: [1, 3], dataType: .double)
+                    inputArray[0] = NSNumber(value: wattageValue)
+                    inputArray[1] = NSNumber(value: weekday)
+                    inputArray[2] = NSNumber(value: hour)
+                    let prediction = try tmc.prediction(input: Torch_dishwasher_microwave_airconditioningInput(input: inputArray))
+                    print(prediction.linear_4)
+                    print(prediction.linear_4ShapedArray)
                 }
             }
         } catch {
