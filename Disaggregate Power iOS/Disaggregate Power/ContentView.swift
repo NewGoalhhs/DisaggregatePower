@@ -54,7 +54,7 @@ struct ContentView: View {
             Slider(value: $wattageValue, in: 0...3000, step: 1)
                 .padding()
                 .onChange(of: wattageValue) {
-                    wattage = String(format: "%.2f", wattageValue)
+                    wattage = String(wattageValue)
                     predict()
                 }
 

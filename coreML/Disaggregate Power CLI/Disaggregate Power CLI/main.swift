@@ -27,15 +27,21 @@ func main() {
         return
     }
 
-    let targetColumn = "appliance_in_use"
+    print("Please enter the path to the validation data CSV file:")
+    guard let input = readLine(), let validationDataPath = URL(string: "file://\(input)") else {
+        print("Invalid input. Exiting.")
+        return
+    }
+
+    let targetColumn = "appliances_in_use"
     let featureColumns = ["power_usage", "weekday", "hour", "minute"]
 
     do {
-        let classifier = try PowerDataLogisticRegression(trainingDataPath: trainingDataPath)
+        let classifier = try PowerDataBoostedTreeClassifier(trainingDataPath: trainingDataPath, validationDataPath: validationDataPath)
 
         // Train the model
         do {
-            try classifier.train(targetColumn: targetColumn, featureColumns: featureColumns, maxIterations: 100, l1Penalty: 0.0, l2Penalty: 1.0, stepSize: 0.3, convergenceThreshold: 1e-4, featureRescaling: true)
+            try classifier.train(targetColumn: targetColumn, featureColumns: featureColumns, maxIterations: 10, maxDepth: 15)
         } catch {
             if let error = error as? OptimizationError {
                 print(error.debugDescription)

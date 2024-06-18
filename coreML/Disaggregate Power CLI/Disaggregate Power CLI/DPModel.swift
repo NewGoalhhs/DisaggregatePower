@@ -16,17 +16,23 @@ class DPModel {
     let trainingData: DataFrame
     let validationData: DataFrame
 
-    init(trainingDataPath: URL) throws {
+    init(trainingDataPath: URL, validationDataPath: URL? = nil) throws {
         self.metadata = .init()
         self.metadata.author = "Reinder Noordans"
         self.metadata.additional = [
             "com.apple.coreml.model.preview.type": "tabularClassifier"
         ]
 
-        let data = try Data(contentsOf: trainingDataPath)
-        let csvData = try DataFrame(csvData: data)
-        let (trainData, valData) = csvData.randomSplit(by: 0.8, seed: 42)
-        self.trainingData = trainData.base
-        self.validationData = valData.base
+        let tdata = try Data(contentsOf: trainingDataPath)
+        let trainingData = try DataFrame(csvData: tdata)
+        if let validationDataPath {
+            self.trainingData = trainingData
+            let vdata = try Data(contentsOf: validationDataPath)
+            self.validationData = try DataFrame(csvData: vdata)
+        } else {
+            let (trainData, valData) = trainingData.randomSplit(by: 0.8, seed: 42)
+            self.trainingData = trainData.base
+            self.validationData = valData.base
+        }
     }
 }
