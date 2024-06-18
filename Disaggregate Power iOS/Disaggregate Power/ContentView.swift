@@ -10,6 +10,7 @@ import CoreML
 
 struct ContentView: View {
     @State private var modelProbabilities: [String: [Int64: Double]] = [:]
+    @State private var multiclassProbability: [String: Double] = [:]
     @State private var wattage: String = "0.0"
     @State private var wattageValue: Double = 0.0
     @State private var date: Date = .now
@@ -20,12 +21,15 @@ struct ContentView: View {
     private var decisionTree: Decision_Tree_microwave?
     private var logisticRegression: Logistic_Regression_microwave?
 
+    private var multiclass: dishwasher_microwave_airconditioning?
+
     init() {
         do {
             randomForest = try Random_Forest_microwave(configuration: .init())
             boostedTree = try Boosted_Tree_microwave(configuration: .init())
             decisionTree = try Decision_Tree_microwave(configuration: .init())
             logisticRegression = try Logistic_Regression_microwave(configuration: .init())
+            multiclass = try dishwasher_microwave_airconditioning(configuration: .init())
         } catch {
             print(error.localizedDescription)
         }
@@ -60,18 +64,24 @@ struct ContentView: View {
 
             Spacer()
 
-            VStack {
-                if let rfProbability = modelProbabilities["Random Forest"]?[1] {
-                    PredictionView(modelName: "Random Forest", probability: rfProbability)
-                }
-                if let btProbability = modelProbabilities["Boosted Tree"]?[1] {
-                    PredictionView(modelName: "Boosted Tree", probability: btProbability)
-                }
-                if let dtProbability = modelProbabilities["Decision Tree"]?[1] {
-                    PredictionView(modelName: "Decision Tree", probability: dtProbability)
-                }
-                if let lrProbability = modelProbabilities["Logistic Regression"]?[1] {
-                    PredictionView(modelName: "Logistic Regression", probability: lrProbability)
+            ScrollView {
+                VStack {
+                    if let rfProbability = modelProbabilities["Random Forest"]?[1] {
+                        PredictionView(modelName: "Random Forest", probability: rfProbability)
+                    }
+                    if let btProbability = modelProbabilities["Boosted Tree"]?[1] {
+                        PredictionView(modelName: "Boosted Tree", probability: btProbability)
+                    }
+                    if let dtProbability = modelProbabilities["Decision Tree"]?[1] {
+                        PredictionView(modelName: "Decision Tree", probability: dtProbability)
+                    }
+                    if let lrProbability = modelProbabilities["Logistic Regression"]?[1] {
+                        PredictionView(modelName: "Logistic Regression", probability: lrProbability)
+                    }
+                    
+                    ForEach(multiclassProbability.sorted(by: { $0.key > $1.key }), id: \.key) { mc in
+                        PredictionView(modelName: mc.key, probability: mc.value)
+                    }
                 }
             }
         }
@@ -123,6 +133,11 @@ struct ContentView: View {
             if let lr = logisticRegression {
                 let prediction = try lr.prediction(input: .init(power_usage: wattageValue, weekday: Int64(weekday), hour: Int64(hour), minute: Int64(minute)))
                 modelProbabilities["Logistic Regression"] = prediction.appliance_in_useProbability
+            }
+
+            if let mc = multiclass {
+                let prediction = try mc.prediction(input: .init(power_usage: wattageValue, weekday: Int64(weekday), hour: Int64(hour), minute: Int64(minute)))
+                multiclassProbability = prediction.appliances_in_useProbability
             }
         } catch {
             print(error.localizedDescription)

@@ -32,7 +32,8 @@ class dbToCSV(Generate):
         # Get all data from the database
         power_usage = self.db.query("SELECT * FROM PowerUsage")
         appliances_in_use = self.db.query("SELECT * FROM IsUsingAppliance")
-        appliances = self.db.query("SELECT * FROM Appliance")
+        # appliance 2, 6 and 16 should be queried from the database
+        appliances = self.db.query("SELECT * FROM Appliance WHERE id IN (2, 6, 16)")
 
         # Create dataframes
         power_usage_df = pd.DataFrame(power_usage)
@@ -63,8 +64,8 @@ class dbToCSV(Generate):
         weekend_test = weekend_data.drop(weekend_train.index)
 
         # Combine training and testing datasets
-        train_data = pd.concat([weekday_train, weekend_train]).reset_index(drop=True)
-        test_data = pd.concat([weekday_test, weekend_test]).reset_index(drop=True)
+        train_data = pd.concat([weekday_train, weekend_train]).reset_index(drop=True).sort_index()
+        test_data = pd.concat([weekday_test, weekend_test]).reset_index(drop=True).sort_index()
 
         # Create directories
         os.makedirs('data/multiclass', exist_ok=True)

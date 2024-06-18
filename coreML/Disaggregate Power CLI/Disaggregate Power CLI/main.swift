@@ -41,7 +41,7 @@ func main() {
 
         // Train the model
         do {
-            try classifier.train(targetColumn: targetColumn, featureColumns: featureColumns, maxIterations: 10, maxDepth: 15)
+            try classifier.train(targetColumn: targetColumn, featureColumns: featureColumns, maxIterations: 20, maxDepth: 15)
         } catch {
             if let error = error as? OptimizationError {
                 print(error.debugDescription)
