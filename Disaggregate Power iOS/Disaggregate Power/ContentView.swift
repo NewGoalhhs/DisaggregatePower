@@ -8,6 +8,11 @@
 import SwiftUI
 import CoreML
 
+private enum mlType: String {
+    case microwave = "Microwave"
+    case multiclass = "Multiclass"
+}
+
 struct ContentView: View {
     @State private var modelProbabilities: [String: [Int64: Double]] = [:]
     @State private var multiclassProbability: [String: Double] = [:]
@@ -15,6 +20,7 @@ struct ContentView: View {
     @State private var wattageValue: Double = 0.0
     @State private var date: Date = .now
     @FocusState private var focused: Bool
+    @State private var type: mlType = .microwave // Set default type
 
     private var randomForest: Random_Forest_microwave?
     private var boostedTree: Boosted_Tree_microwave?
@@ -62,30 +68,40 @@ struct ContentView: View {
                     predict()
                 }
 
+            Picker(selection: $type, label: Text("Model Type")) {
+                Text(mlType.microwave.rawValue).tag(mlType.microwave)
+                Text(mlType.multiclass.rawValue).tag(mlType.multiclass)
+            }
+            .pickerStyle(SegmentedPickerStyle())
+            .padding()
+            .onChange(of: type) {
+                predict()
+            }
+
             Spacer()
 
             ScrollView {
                 VStack {
-                    if let rfProbability = modelProbabilities["Random Forest"]?[1] {
-                        PredictionView(modelName: "Random Forest", probability: rfProbability)
-                    }
-                    if let btProbability = modelProbabilities["Boosted Tree"]?[1] {
-                        PredictionView(modelName: "Boosted Tree", probability: btProbability)
-                    }
-                    if let dtProbability = modelProbabilities["Decision Tree"]?[1] {
-                        PredictionView(modelName: "Decision Tree", probability: dtProbability)
-                    }
-                    if let lrProbability = modelProbabilities["Logistic Regression"]?[1] {
-                        PredictionView(modelName: "Logistic Regression", probability: lrProbability)
-                    }
-                    
-                    ForEach(multiclassProbability.sorted(by: { $0.key > $1.key }), id: \.key) { mc in
-                        PredictionView(modelName: mc.key, probability: mc.value)
+                    if type == .microwave {
+                        if let rfProbability = modelProbabilities["Random Forest"]?[1] {
+                            PredictionView(modelName: "Random Forest", probability: rfProbability)
+                        }
+                        if let btProbability = modelProbabilities["Boosted Tree"]?[1] {
+                            PredictionView(modelName: "Boosted Tree", probability: btProbability)
+                        }
+                        if let dtProbability = modelProbabilities["Decision Tree"]?[1] {
+                            PredictionView(modelName: "Decision Tree", probability: dtProbability)
+                        }
+                        if let lrProbability = modelProbabilities["Logistic Regression"]?[1] {
+                            PredictionView(modelName: "Logistic Regression", probability: lrProbability)
+                        }
+                    } else if type == .multiclass {
+                        HighestProbabilityView(probabilities: multiclassProbability)
                     }
                 }
             }
         }
-        .padding()
+        .padding(.horizontal)
     }
 
     @MainActor
@@ -115,29 +131,31 @@ struct ContentView: View {
                 return
             }
 
-            if let rf = randomForest {
-                let prediction = try rf.prediction(input: .init(power_usage: wattageValue, weekday: Int64(weekday), hour: Int64(hour), minute: Int64(minute)))
-                modelProbabilities["Random Forest"] = prediction.appliance_in_useProbability
-            }
+            if type == .microwave {
+                if let rf = randomForest {
+                    let prediction = try rf.prediction(input: .init(power_usage: wattageValue, weekday: Int64(weekday), hour: Int64(hour), minute: Int64(minute)))
+                    modelProbabilities["Random Forest"] = prediction.appliance_in_useProbability
+                }
 
-            if let bt = boostedTree {
-                let prediction = try bt.prediction(input: .init(power_usage: wattageValue, weekday: Int64(weekday), hour: Int64(hour), minute: Int64(minute)))
-                modelProbabilities["Boosted Tree"] = prediction.appliance_in_useProbability
-            }
+                if let bt = boostedTree {
+                    let prediction = try bt.prediction(input: .init(power_usage: wattageValue, weekday: Int64(weekday), hour: Int64(hour), minute: Int64(minute)))
+                    modelProbabilities["Boosted Tree"] = prediction.appliance_in_useProbability
+                }
 
-            if let dt = decisionTree {
-                let prediction = try dt.prediction(input: .init(power_usage: wattageValue, weekday: Int64(weekday), hour: Int64(hour), minute: Int64(minute)))
-                modelProbabilities["Decision Tree"] = prediction.appliance_in_useProbability
-            }
+                if let dt = decisionTree {
+                    let prediction = try dt.prediction(input: .init(power_usage: wattageValue, weekday: Int64(weekday), hour: Int64(hour), minute: Int64(minute)))
+                    modelProbabilities["Decision Tree"] = prediction.appliance_in_useProbability
+                }
 
-            if let lr = logisticRegression {
-                let prediction = try lr.prediction(input: .init(power_usage: wattageValue, weekday: Int64(weekday), hour: Int64(hour), minute: Int64(minute)))
-                modelProbabilities["Logistic Regression"] = prediction.appliance_in_useProbability
-            }
-
-            if let mc = multiclass {
-                let prediction = try mc.prediction(input: .init(power_usage: wattageValue, weekday: Int64(weekday), hour: Int64(hour), minute: Int64(minute)))
-                multiclassProbability = prediction.appliances_in_useProbability
+                if let lr = logisticRegression {
+                    let prediction = try lr.prediction(input: .init(power_usage: wattageValue, weekday: Int64(weekday), hour: Int64(hour), minute: Int64(minute)))
+                    modelProbabilities["Logistic Regression"] = prediction.appliance_in_useProbability
+                }
+            } else if type == .multiclass {
+                if let mc = multiclass {
+                    let prediction = try mc.prediction(input: .init(power_usage: wattageValue, weekday: Int64(weekday), hour: Int64(hour), minute: Int64(minute)))
+                    multiclassProbability = prediction.appliances_in_useProbability
+                }
             }
         } catch {
             print(error.localizedDescription)
@@ -167,6 +185,59 @@ struct PredictionView: View {
         .background(Color.gray.opacity(0.2))
         .cornerRadius(10)
         .padding(.horizontal)
+    }
+}
+
+struct HighestProbabilityView: View {
+    var probabilities: [String: Double]
+
+    var body: some View {
+        VStack {
+            Text("Appliance Usage Probabilities")
+                .font(.headline)
+                .padding(.bottom)
+
+            ForEach(probabilities.sorted(by: { $0.value > $1.value }), id: \.key) { appliance, probability in
+                HStack {
+                    Text("\(keyToText(for: appliance)):")
+                    Spacer()
+                    VStack(alignment: .trailing) {
+                        Text(probability.formatted(.percent))
+                            .font(.footnote)
+                            .foregroundColor(.gray)
+                    }
+                }
+                .padding()
+                .background(Color.gray.opacity(0.2))
+                .cornerRadius(10)
+                .padding(.horizontal)
+            }
+        }
+        .padding()
+    }
+
+    private func keyToText(for key: String) -> String {
+        let appliances = ["Microwave", "Dishwasher", "Airconditioning"]
+
+        let trimmedKey = key.trimmingCharacters(in: CharacterSet(charactersIn: "[]"))
+        let list = trimmedKey.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+
+        var activeAppliances = [String]()
+        for (index, value) in list.enumerated() {
+            if value == "1" {
+                activeAppliances.append(appliances[index])
+            }
+        }
+
+        if activeAppliances.isEmpty {
+            return "No appliances are being used."
+        } else if activeAppliances.count == 1 {
+            return "\(activeAppliances[0])"
+        } else {
+            let lastAppliance = activeAppliances.removeLast()
+            let appliancesString = activeAppliances.joined(separator: ", ") + " and " + lastAppliance
+            return "\(appliancesString)"
+        }
     }
 }
 
