@@ -151,31 +151,3 @@ class AdvancedPytorchModel(MachineLearningModel):
             'random_state': self.random_state,
             'accuracy': self.accuracy
         }
-
-
-if __name__ == '__main__':
-    # Generate a date range
-    date_range = pd.date_range(start='2023-01-01', end='2023-01-31', freq='H')
-
-    # Generate random power usage data
-    np.random.seed(42)  # For reproducibility
-    power_usage = np.random.normal(loc=100, scale=20, size=len(date_range))  # Normally distributed data
-
-    # Generate random appliance usage data
-    appliance_in_use_1 = np.random.choice([0, 1], size=len(date_range), p=[0.7, 0.3])  # 30% chance of being in use
-    appliance_in_use_2 = np.random.choice([0, 1], size=len(date_range), p=[0.7, 0.3])  # 30% chance of being in use
-
-    # Create a DataFrame
-    data = pd.DataFrame({
-        'datetime': date_range,
-        'power_usage': power_usage,
-        'appliance_in_use_1': appliance_in_use_1,
-        'appliance_in_use_2': appliance_in_use_2
-    })
-
-    model = AdvancedPytorchModel()
-    model.train(data)
-    predictions, outputs = model.predict(data)
-    print(predictions[:10])
-    score = model.get_score(data[['appliance_in_use_1', 'appliance_in_use_2']].max(axis=1), predictions)
-    print(score)
