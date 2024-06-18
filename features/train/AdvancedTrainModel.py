@@ -34,7 +34,7 @@ class AdvancedTrainModel:
         if not os.path.exists(models_path):
             os.makedirs(models_path)
 
-        appliance_str = '_'.join([app['name'] for app in appliance])
+        appliance_str = '-'.join([app['name'] for app in appliance])
 
         datetime_str = datetime.now().strftime("%Y%m%d%H%M%S")
 

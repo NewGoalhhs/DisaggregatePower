@@ -7,10 +7,10 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, accuracy_score
 import pandas as pd
-import coremltools as ct
+import joblib  # For saving and loading the scaler
+import json
 
-from MachineLearning.classifier.DeepBinaryClassifier import DeepBinaryClassifier
-from MachineLearning.classifier.DeepBinaryMultiClassifier import DeepBinaryMultiClassifier
+from MachineLearning.classifier.DeepMultiClassifier import DeepMultiClassifier
 from core.MachineLearningModel import MachineLearningModel
 
 
@@ -20,7 +20,7 @@ class AdvancedPytorchModel(MachineLearningModel):
 
         # Training parameters
         if hidden_size is None:
-            self.hidden_size = [52 * output_size, 79 * output_size, 52 * output_size, 27 * output_size]
+            self.hidden_size = [52, 79, 52, 27]
         else:
             self.hidden_size = hidden_size
 
@@ -46,11 +46,11 @@ class AdvancedPytorchModel(MachineLearningModel):
             'accuracy': accuracy_score
         }
 
-        self.model = DeepBinaryMultiClassifier(len(self.feature_columns), self.hidden_size, output_size).to(self.device)
+        self.model = DeepMultiClassifier(len(self.feature_columns), self.hidden_size, output_size).to(self.device)
         self.model.metrics = self.metrics
 
         self.criterion = nn.BCEWithLogitsLoss()
-        self.optimizer = optim.Adam(self.model.parameters(), lr=0.001)
+        self.optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
         self.scaler = StandardScaler()
 
     def preprocess_data(self, data, fit_scaler=False):
@@ -87,17 +87,33 @@ class AdvancedPytorchModel(MachineLearningModel):
         return 'pt'
 
     def save_model(self, path):
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        torch.save(self.model.state_dict(), path)
-
-        coreml_path = path.replace('.pt', '.mlpackage').replace('PytorchModel', 'CoreMLModel')
-        # Save the CoreML model
-        example_input, _ = self.preprocess_data(self.data.head(1))
-        coreml_model = self.convert_to_coreml(example_input)
-        coreml_model.save(coreml_path)
+        path = path.replace('.'+self.file_extension(), '')
+        model_path = os.path.join(path, 'model.pt')
+        scaler_path = os.path.join(path, 'scaler.pkl')
+        parameters_path = os.path.join(path, 'parameters.json')
+        os.makedirs(os.path.dirname(model_path), exist_ok=True)
+        # Save the model
+        torch.save(self.model.state_dict(), model_path)
+        os.makedirs(os.path.dirname(scaler_path), exist_ok=True)
+        # Save the scaler
+        joblib.dump(self.scaler, scaler_path)
+        os.makedirs(parameters_path, exist_ok=True)
+        # Save the parameters
+        with open(parameters_path, 'w') as f:
+            json.dump(self.__dict__, f)
 
     def load_model(self, path):
-        self.model.load_state_dict(torch.load(path))
+        path = path.replace('.'+self.file_extension(), '')
+        # Load the model
+        model_path = os.path.join(path, 'model.pt')
+        self.model.load_state_dict(torch.load(model_path))
+        # Load the scaler
+        scaler_path = os.path.join(path, 'scaler.pkl')
+        self.scaler = joblib.load(scaler_path)
+        parameters_path = os.path.join(path, 'parameters.json')
+        # Load the parameters
+        with open(parameters_path, 'r') as f:
+            json.load(f)
 
     def train(self, data, epochs=100, print_progress=True):
         X, y = self.preprocess_data(data, fit_scaler=True)
@@ -122,6 +138,8 @@ class AdvancedPytorchModel(MachineLearningModel):
                 print(f'Epoch {epoch + 1}/{epochs}, Loss: {loss.item()}')
 
         self.evaluate(X_test, y_test)
+        # Save the scaler after training
+        joblib.dump(self.scaler, 'scaler.pkl')
 
     def evaluate(self, X_test, y_test):
         self.model.eval()
@@ -133,12 +151,13 @@ class AdvancedPytorchModel(MachineLearningModel):
             print(f'Accuracy: {accuracy * 100:.2f}%')
             print(classification_report(y_test.cpu().numpy(), predictions.cpu().numpy(), zero_division=1))
 
-    def predict(self, data, limit=None):
+    def predict(self, data):
+        # Load the scaler if not already loaded
+        if not hasattr(self, 'scaler') or not self.scaler:
+            self.scaler = joblib.load('scaler.pkl')
         X, _ = self.preprocess_data(data, fit_scaler=False)
         self.model.eval()
         with torch.no_grad():
-            if limit is not None:
-                X = X[limit:]
             outputs = self.model(X)
             predictions = torch.sigmoid(outputs) > 0.5  # Apply sigmoid and thresholding
             return predictions.float().cpu().numpy().tolist(), outputs.cpu().numpy().tolist()
@@ -159,9 +178,3 @@ class AdvancedPytorchModel(MachineLearningModel):
             'random_state': self.random_state,
             'accuracy': self.accuracy
         }
-
-    def convert_to_coreml(self, input_example):
-        self.model.eval()
-        traced_model = torch.jit.trace(self.model, input_example)
-        mlmodel = ct.convert(traced_model, inputs=[ct.TensorType(name="input", shape=input_example.shape)])
-        return mlmodel

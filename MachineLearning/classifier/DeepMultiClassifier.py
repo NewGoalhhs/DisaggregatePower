@@ -2,9 +2,9 @@ import torch
 import torch.nn as nn
 
 
-class DeepBinaryMultiClassifier(nn.Module):
+class DeepMultiClassifier(nn.Module):
     def __init__(self, input_size, hidden_sizes, out_size, dropout_prob=0.5):
-        super(DeepBinaryMultiClassifier, self).__init__()
+        super(DeepMultiClassifier, self).__init__()
         self.layers = nn.ModuleList()
         self.dropout = nn.Dropout(p=dropout_prob)
         self.activation_function = nn.ReLU()

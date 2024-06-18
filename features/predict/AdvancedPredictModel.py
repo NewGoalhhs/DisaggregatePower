@@ -16,19 +16,19 @@ from helper.PrintHelper import PrintHelper
 
 
 class AdvancedPredictModel:
-    def __init__(self, model_path, appliance):
+    def __init__(self, model_path, appliances):
         path = model_path.replace('\\', '/').split('/')
-        self.appliance = appliance
+        self.appliances = appliances
         self.model_name = path.pop()
         self.model_class = path.pop()
 
-        _module_ = __import__('MachineLearning.' + self.model_class, fromlist=[self.model_class])
+        _module_ = __import__('MachineLearning.advanced.' + self.model_class, fromlist=[self.model_class])
         _class_ = getattr(_module_, self.model_class)
-        self.model = _class_()
+        self.model = _class_(output_size=len(appliances))
         try:
-            self.model.load_model(app.__ROOT__ + f"/MachineLearning/models/{model_path}")
+            self.model.load_model(app.__ROOT__ + f"/MachineLearning/advanced/models/{model_path}")
         except RuntimeError:
-            print("Model not working. " + app.__ROOT__ + f"/MachineLearning/models/{model_path}")
+            print("Model not working. " + app.__ROOT__ + f"/MachineLearning/advanced/models/{model_path}")
 
     def predict(self, datetime, power_usage, appliance_in_use):
 
@@ -61,7 +61,7 @@ class AdvancedPredictModel:
             for power_usage_i in power_usage:
                 appliance_in_use.append(bool(Database.query(
                     IsUsingApplianceQuery.SELECT_WHERE_POWERUSAGE_FOR_APPLIANCE.format(power_usage_i['id'],
-                                                                                       self.appliance['id']))))
+                                                                                       self.appliances['id']))))
 
             return date_time, main_power, appliance_in_use
 
@@ -106,8 +106,8 @@ class AdvancedPredictModel:
 
     def get_image_path(self):
         datetime_str = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-        return app.__ROOT__ + f"/src/{self.model_class}/{datetime_str}_{self.appliance['name']}.png"
-
+        appliances_str = '-'.join([appliance['name'] for appliance in self.appliances])
+        return app.__ROOT__ + f"/src/{self.model_class}/{datetime_str}_{appliances_str}.png"
 
     @staticmethod
     def get_predict_model_from_save_name(save_name):
@@ -118,20 +118,22 @@ class AdvancedPredictModel:
                         for sub_entry in sub_entries:
                             sub_entry_name = sub_entry.name.split('.')[0]
                             if sub_entry_name == save_name:
-                                appliance = AdvancedPredictModel.get_appliance(sub_entry.name)
-                                return AdvancedPredictModel(entry.name + '/' + sub_entry.name, appliance)
+                                appliances = AdvancedPredictModel.get_appliances(sub_entry.name)
+                                return AdvancedPredictModel(entry.name + '/' + sub_entry.name, appliances)
         return None
 
     @staticmethod
-    def get_appliance(file_name, additional=''):
+    def get_appliances(file_name, additional=''):
         if not file_name:
             return ''
 
         split_entry = file_name.split('.')[0]
         appliance_name = split_entry.split('_')[-1] + additional
-        appliance = Database.query(Query.SELECT_WHERE.format('Appliance', 'name', appliance_name))
-        if len(appliance) > 0:
-            return appliance[0]
-        else:
-            handling = split_entry.replace('_' + appliance_name, '')
-            return PredictModel.get_appliance(handling, '_' + appliance_name)
+        appliances = appliance_name.split('-')
+        result = []
+        for appliance in appliances:
+            query = Database.query(Query.SELECT_WHERE.format('Appliance', 'name', appliance))
+            if len(query) == 0:
+                return None
+            result.append(query[0])
+        return result
