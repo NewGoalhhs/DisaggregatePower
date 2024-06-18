@@ -29,6 +29,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		4B43B43B2C21921C0088196D /* test_data.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test_data.csv; sourceTree = "<group>"; };
+		4B43B43C2C21921C0088196D /* train_data.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = train_data.csv; sourceTree = "<group>"; };
 		4B968F572C14E74B00357E09 /* Disaggregate Power CLI */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "Disaggregate Power CLI"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4B968F5A2C14E74B00357E09 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		4B968F642C14EFC600357E09 /* PowerDataRandomForestClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PowerDataRandomForestClassifier.swift; sourceTree = "<group>"; };
@@ -52,6 +54,22 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		4B43B43D2C21921C0088196D /* multiclass */ = {
+			isa = PBXGroup;
+			children = (
+				4B43B43B2C21921C0088196D /* test_data.csv */,
+				4B43B43C2C21921C0088196D /* train_data.csv */,
+			);
+			path = multiclass;
+			sourceTree = "<group>";
+		};
+		4B43B43E2C2193FF0088196D /* Models */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
 		4B968F4E2C14E74B00357E09 = {
 			isa = PBXGroup;
 			children = (
@@ -71,6 +89,7 @@
 		4B968F592C14E74B00357E09 /* Disaggregate Power CLI */ = {
 			isa = PBXGroup;
 			children = (
+				4B43B43E2C2193FF0088196D /* Models */,
 				4B968F5A2C14E74B00357E09 /* main.swift */,
 				4B968F642C14EFC600357E09 /* PowerDataRandomForestClassifier.swift */,
 				4B968F662C14F01D00357E09 /* PowerDataBoostedTreeClassifier.swift */,
@@ -79,6 +98,7 @@
 				4B968F6E2C14F6B300357E09 /* PowerDataLogisticRegression.swift */,
 				4B968F682C14F0D100357E09 /* DPModel.swift */,
 				4B968F632C14E7BA00357E09 /* Microwave */,
+				4B43B43D2C21921C0088196D /* multiclass */,
 			);
 			path = "Disaggregate Power CLI";
 			sourceTree = "<group>";

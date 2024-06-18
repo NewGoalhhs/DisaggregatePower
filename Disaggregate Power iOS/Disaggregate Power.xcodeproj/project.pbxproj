@@ -7,10 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		4B747F9B2C1501ED005CC3B1 /* Decision Tree microwave.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 4B747F972C1501ED005CC3B1 /* Decision Tree microwave.mlmodel */; };
-		4B747F9C2C1501ED005CC3B1 /* Boosted Tree microwave.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 4B747F982C1501ED005CC3B1 /* Boosted Tree microwave.mlmodel */; };
-		4B747F9D2C1501ED005CC3B1 /* Random Forest microwave.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 4B747F992C1501ED005CC3B1 /* Random Forest microwave.mlmodel */; };
-		4B747F9E2C1501ED005CC3B1 /* Logistic Regression microwave.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 4B747F9A2C1501ED005CC3B1 /* Logistic Regression microwave.mlmodel */; };
+		4B076C412C19AF7F00B83378 /* Boosted Tree microwave.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = 4B076C402C19AF7E00B83378 /* Boosted Tree microwave.mlpackage */; };
+		4B076C432C19AFD400B83378 /* Decision Tree microwave.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = 4B076C422C19AFD400B83378 /* Decision Tree microwave.mlpackage */; };
+		4B076C452C19AFD900B83378 /* Logistic Regression microwave.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = 4B076C442C19AFD900B83378 /* Logistic Regression microwave.mlpackage */; };
+		4B076C472C19AFDF00B83378 /* Random Forest microwave.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = 4B076C462C19AFDF00B83378 /* Random Forest microwave.mlpackage */; };
+		4B43B4402C2194CD0088196D /* dishwasher-microwave-airconditioning.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 4B43B43F2C2194CD0088196D /* dishwasher-microwave-airconditioning.mlmodel */; };
 		4B747FA02C15036C005CC3B1 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B747F9F2C15036C005CC3B1 /* ContentView.swift */; };
 		4B9F50E92C130C8300452464 /* Disaggregate_PowerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B9F50E82C130C8300452464 /* Disaggregate_PowerApp.swift */; };
 		4B9F50ED2C130C8400452464 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4B9F50EC2C130C8400452464 /* Assets.xcassets */; };
@@ -18,10 +19,11 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		4B747F972C1501ED005CC3B1 /* Decision Tree microwave.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = "Decision Tree microwave.mlmodel"; sourceTree = "<group>"; };
-		4B747F982C1501ED005CC3B1 /* Boosted Tree microwave.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = "Boosted Tree microwave.mlmodel"; sourceTree = "<group>"; };
-		4B747F992C1501ED005CC3B1 /* Random Forest microwave.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = "Random Forest microwave.mlmodel"; sourceTree = "<group>"; };
-		4B747F9A2C1501ED005CC3B1 /* Logistic Regression microwave.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = "Logistic Regression microwave.mlmodel"; sourceTree = "<group>"; };
+		4B076C402C19AF7E00B83378 /* Boosted Tree microwave.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; path = "Boosted Tree microwave.mlpackage"; sourceTree = "<group>"; };
+		4B076C422C19AFD400B83378 /* Decision Tree microwave.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; path = "Decision Tree microwave.mlpackage"; sourceTree = "<group>"; };
+		4B076C442C19AFD900B83378 /* Logistic Regression microwave.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; path = "Logistic Regression microwave.mlpackage"; sourceTree = "<group>"; };
+		4B076C462C19AFDF00B83378 /* Random Forest microwave.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; path = "Random Forest microwave.mlpackage"; sourceTree = "<group>"; };
+		4B43B43F2C2194CD0088196D /* dishwasher-microwave-airconditioning.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = "dishwasher-microwave-airconditioning.mlmodel"; sourceTree = "<group>"; };
 		4B747F9F2C15036C005CC3B1 /* ContentView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		4B9F50E52C130C8300452464 /* Disaggregate Power.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Disaggregate Power.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4B9F50E82C130C8300452464 /* Disaggregate_PowerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Disaggregate_PowerApp.swift; sourceTree = "<group>"; };
@@ -43,10 +45,11 @@
 		4B747F962C1501AF005CC3B1 /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				4B747F982C1501ED005CC3B1 /* Boosted Tree microwave.mlmodel */,
-				4B747F972C1501ED005CC3B1 /* Decision Tree microwave.mlmodel */,
-				4B747F9A2C1501ED005CC3B1 /* Logistic Regression microwave.mlmodel */,
-				4B747F992C1501ED005CC3B1 /* Random Forest microwave.mlmodel */,
+				4B43B43F2C2194CD0088196D /* dishwasher-microwave-airconditioning.mlmodel */,
+				4B076C402C19AF7E00B83378 /* Boosted Tree microwave.mlpackage */,
+				4B076C422C19AFD400B83378 /* Decision Tree microwave.mlpackage */,
+				4B076C442C19AFD900B83378 /* Logistic Regression microwave.mlpackage */,
+				4B076C462C19AFDF00B83378 /* Random Forest microwave.mlpackage */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -157,12 +160,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4B747F9E2C1501ED005CC3B1 /* Logistic Regression microwave.mlmodel in Sources */,
-				4B747F9B2C1501ED005CC3B1 /* Decision Tree microwave.mlmodel in Sources */,
+				4B076C412C19AF7F00B83378 /* Boosted Tree microwave.mlpackage in Sources */,
+				4B076C452C19AFD900B83378 /* Logistic Regression microwave.mlpackage in Sources */,
+				4B43B4402C2194CD0088196D /* dishwasher-microwave-airconditioning.mlmodel in Sources */,
 				4B747FA02C15036C005CC3B1 /* ContentView.swift in Sources */,
 				4B9F50E92C130C8300452464 /* Disaggregate_PowerApp.swift in Sources */,
-				4B747F9D2C1501ED005CC3B1 /* Random Forest microwave.mlmodel in Sources */,
-				4B747F9C2C1501ED005CC3B1 /* Boosted Tree microwave.mlmodel in Sources */,
+				4B076C432C19AFD400B83378 /* Decision Tree microwave.mlpackage in Sources */,
+				4B076C472C19AFDF00B83378 /* Random Forest microwave.mlpackage in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

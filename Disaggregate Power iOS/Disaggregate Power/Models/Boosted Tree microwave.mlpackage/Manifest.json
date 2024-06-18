@@ -1,0 +1,24 @@
+{
+    "fileFormatVersion": "1.0.0",
+    "itemInfoEntries": {
+        "63CD99E0-8608-4E25-99F2-4FC6FD6A71BB": {
+            "author": "com.apple.CoreML",
+            "description": "External FeatureDescription Overlay",
+            "name": "FeatureDescriptions.json",
+            "path": "com.apple.CoreML/FeatureDescriptions.json"
+        },
+        "7EF09A42-BCDF-4EFB-BE55-5F43F196FE2D": {
+            "author": "com.apple.CoreML",
+            "description": "External Metadata Overlay",
+            "name": "Metadata.json",
+            "path": "com.apple.CoreML/Metadata.json"
+        },
+        "DB670BD7-DBC1-4DBB-BEA6-01CB2EC9B899": {
+            "author": "com.apple.CoreML",
+            "description": "CoreML Model Specification",
+            "name": "Boosted Tree microwave.mlmodel",
+            "path": "com.apple.CoreML/Boosted Tree microwave.mlmodel"
+        }
+    },
+    "rootModelIdentifier": "DB670BD7-DBC1-4DBB-BEA6-01CB2EC9B899"
+}
