@@ -1,6 +1,7 @@
 import os
 
 from app import __ROOT__
+from flask_app import socketio
 
 
 class Router:

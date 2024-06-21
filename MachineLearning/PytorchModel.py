@@ -8,11 +8,12 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, accuracy_score
 import pandas as pd
-import coremltools as ct
+import joblib
 
 import app
 from MachineLearning.classifier.DeepBinaryClassifier import DeepBinaryClassifier
 from core.MachineLearningModel import MachineLearningModel
+from flask_app import socketio
 
 
 class PytorchModel(MachineLearningModel):
@@ -69,7 +70,10 @@ class PytorchModel(MachineLearningModel):
         X = df[self.feature_columns]
 
         # Fit and transform the scaler on the training data
-        X_scaled = self.scaler.fit_transform(X)
+        if fit_scaler:
+            X_scaled = self.scaler.fit_transform(X)
+        else:
+            X_scaled = self.scaler.transform(X)
 
         # Convert to tensor
         X_scaled = torch.tensor(X_scaled, dtype=torch.float32).to(self.device)
@@ -83,17 +87,25 @@ class PytorchModel(MachineLearningModel):
         return 'pt'
 
     def save_model(self, path):
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        torch.save(self.model.state_dict(), path)
-
-        coreml_path = path.replace('.pt', '.mlpackage').replace('PytorchModel', 'CoreMLModel')
-        # Save the CoreML model
-        example_input, _ = self.preprocess_data(self.data.head(1))
-        coreml_model = self.convert_to_coreml(example_input)
-        coreml_model.save(coreml_path)
+        path = path.replace('.' + self.file_extension(), '')
+        model_path = os.path.join(path, 'model.pt')
+        scaler_path = os.path.join(path, 'scaler.pkl')
+        parameters_path = os.path.join(path, 'parameters.json')
+        os.makedirs(os.path.dirname(model_path), exist_ok=True)
+        # Save the model
+        torch.save(self.model.state_dict(), model_path)
+        os.makedirs(os.path.dirname(scaler_path), exist_ok=True)
+        # Save the scaler
+        joblib.dump(self.scaler, scaler_path)
 
     def load_model(self, path):
-        self.model.load_state_dict(torch.load(path))
+        path = path.replace('.' + self.file_extension(), '')
+        # Load the model
+        model_path = os.path.join(path, 'model.pt')
+        self.model.load_state_dict(torch.load(model_path))
+        # Load the scaler
+        scaler_path = os.path.join(path, 'scaler.pkl')
+        self.scaler = joblib.load(scaler_path)
 
     def train(self, data, epochs=100, print_progress=True):
         X, y = self.preprocess_data(data, fit_scaler=True)
@@ -116,6 +128,7 @@ class PytorchModel(MachineLearningModel):
             self.optimizer.step()
             if self.print_progress:
                 print(f'Epoch {epoch + 1}/{epochs}, Loss: {loss.item()}')
+            socketio.emit('training_notification', {'title': 'Status update', 'message': f'Epoch {epoch + 1}/{epochs}, Loss: {loss.item()}', 'type': 'info', 'duration': 5000},)
 
         self.evaluate(X_test, y_test)
 
@@ -129,12 +142,10 @@ class PytorchModel(MachineLearningModel):
             print(f'Accuracy: {accuracy * 100:.2f}%')
             print(classification_report(y_test.cpu().numpy(), predictions.cpu().numpy(), zero_division=1))
 
-    def predict(self, data, limit=None):
+    def predict(self, data):
         X, _ = self.preprocess_data(data, fit_scaler=False)
         self.model.eval()
         with torch.no_grad():
-            if limit is not None:
-                X = X[limit:]
             outputs = self.model(X)
             predictions = torch.sigmoid(outputs) > 0.05  # Apply sigmoid and thresholding
             return predictions.float().cpu().numpy().flatten().tolist(), (

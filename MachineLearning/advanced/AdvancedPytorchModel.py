@@ -10,11 +10,14 @@ import pandas as pd
 import joblib  # For saving and loading the scaler
 import json
 
+from MachineLearning.PytorchModel import PytorchModel
+from flask_app import socketio
+
 from MachineLearning.classifier.DeepMultiClassifier import DeepMultiClassifier
 from core.MachineLearningModel import MachineLearningModel
 
 
-class AdvancedPytorchModel(MachineLearningModel):
+class AdvancedPytorchModel(PytorchModel):
     def __init__(self, input_size=5, hidden_size=None, learning_rate=0.0005, output_size=2, print_progress=True):
         super().__init__(print_progress)
 
@@ -83,38 +86,6 @@ class AdvancedPytorchModel(MachineLearningModel):
 
         return X_scaled, y
 
-    def file_extension(self):
-        return 'pt'
-
-    def save_model(self, path):
-        path = path.replace('.'+self.file_extension(), '')
-        model_path = os.path.join(path, 'model.pt')
-        scaler_path = os.path.join(path, 'scaler.pkl')
-        parameters_path = os.path.join(path, 'parameters.json')
-        os.makedirs(os.path.dirname(model_path), exist_ok=True)
-        # Save the model
-        torch.save(self.model.state_dict(), model_path)
-        os.makedirs(os.path.dirname(scaler_path), exist_ok=True)
-        # Save the scaler
-        joblib.dump(self.scaler, scaler_path)
-        os.makedirs(parameters_path, exist_ok=True)
-        # Save the parameters
-        with open(parameters_path, 'w') as f:
-            json.dump(self.__dict__, f)
-
-    def load_model(self, path):
-        path = path.replace('.'+self.file_extension(), '')
-        # Load the model
-        model_path = os.path.join(path, 'model.pt')
-        self.model.load_state_dict(torch.load(model_path))
-        # Load the scaler
-        scaler_path = os.path.join(path, 'scaler.pkl')
-        self.scaler = joblib.load(scaler_path)
-        parameters_path = os.path.join(path, 'parameters.json')
-        # Load the parameters
-        with open(parameters_path, 'r') as f:
-            json.load(f)
-
     def train(self, data, epochs=100, print_progress=True):
         X, y = self.preprocess_data(data, fit_scaler=True)
         X_train, X_test, y_train, y_test = train_test_split(X.cpu().numpy(), y.cpu().numpy(),
@@ -128,6 +99,7 @@ class AdvancedPytorchModel(MachineLearningModel):
             self.device)
 
         for epoch in range(epochs):
+            socketio.emit('advanced_training_notification', {'title': 'Status update', 'message': f'Epoch {epoch + 1}/{epochs}', 'type': 'info', 'duration': 5000})
             self.model.train()
             outputs = self.model(X_train)
             loss = self.criterion(outputs, y_train)
@@ -137,6 +109,8 @@ class AdvancedPytorchModel(MachineLearningModel):
             if self.print_progress:
                 print(f'Epoch {epoch + 1}/{epochs}, Loss: {loss.item()}')
 
+        socketio.emit('advanced_training_notification', {'title': 'Status update', 'message': 'Finished training', 'type': 'info', 'duration': 5000})
+
         self.evaluate(X_test, y_test)
         # Save the scaler after training
         joblib.dump(self.scaler, 'scaler.pkl')
@@ -145,7 +119,10 @@ class AdvancedPytorchModel(MachineLearningModel):
         self.model.eval()
         with torch.no_grad():
             outputs = self.model(X_test)
+            print(outputs)
             predictions = torch.sigmoid(outputs) > 0.5  # Apply sigmoid and thresholding
+            print(predictions)
+            print(y_test)
             accuracy = (predictions == y_test).float().mean().item()
             self.accuracy = accuracy
             print(f'Accuracy: {accuracy * 100:.2f}%')

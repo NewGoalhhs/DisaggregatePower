@@ -27,16 +27,13 @@ def start_predicting():
 
             if predict_model is None:
                 data[model] = {"error": "Model not found"}
-
-            training_data = TrainModel.get_training_data(predict_model.appliance)
-
             predict_data = {
-                'datetime': pd.concat([training_data['datetime'], pd.Series(_datetime)]),
-                'power_usage': pd.concat([training_data['power_usage'], pd.Series(main_power)]),
-                'appliance_in_use': pd.concat([training_data['appliance_in_use'], pd.Series(np.zeros(len(_datetime)))])
+                'datetime': pd.Series(_datetime),
+                'power_usage': pd.Series(main_power),
+                'appliance_in_use': pd.Series(np.zeros(len(_datetime)))
             }
 
-            predictions, probabilities = predict_model.model.predict(predict_data, limit=-len(_datetime))
+            predictions, probabilities = predict_model.model.predict(predict_data)
 
             probabilities = [max(min(x, 1), 0) for x in probabilities]
 

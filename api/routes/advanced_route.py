@@ -4,7 +4,7 @@ from core.Database import Database
 from features.predict.AdvancedPredictModel import AdvancedPredictModel
 from features.train.AdvancedTrainModel import AdvancedTrainModel
 from features.train.TrainModel import TrainModel
-from flask_app import app
+from flask_app import app, socketio
 from SQL.SQLQueries import DatabaseOperations as Query
 from MachineLearning.advanced.AdvancedPytorchModel import AdvancedPytorchModel
 import pandas as pd

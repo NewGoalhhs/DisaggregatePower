@@ -7,6 +7,7 @@ from SQL.SQLQueries import DatabaseOperations as Query
 from core.Database import Database
 
 import app
+from flask_app import socketio
 from helper.PrintHelper import PrintHelper
 
 
@@ -17,6 +18,8 @@ class AdvancedTrainModel:
     def train(self, appliances, epochs, print_progress: bool = True):
 
         data = self.get_training_data(appliances)
+
+        socketio.emit('advanced_training_notification', {'title': 'Status update', 'message': 'Started training', 'type': 'info', 'duration': 5000},)
 
         self.model.train(data, epochs=epochs)
 

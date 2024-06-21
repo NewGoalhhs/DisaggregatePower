@@ -7,6 +7,7 @@ from SQL.SQLQueries import DatabaseOperations as Query
 from core.Database import Database
 
 import app
+from flask_app import socketio
 from helper.PrintHelper import PrintHelper
 
 
@@ -18,6 +19,8 @@ class TrainModel:
 
         data = self.get_training_data(appliance)
 
+        socketio.emit('training_notification',
+                      {'title': 'Status update', 'message': 'Started training', 'type': 'info', 'duration': 5000}, )
         self.model.train(data, epochs=epochs)
 
         # Immediately let the model predict to get a score
