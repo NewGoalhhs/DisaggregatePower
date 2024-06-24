@@ -38,7 +38,7 @@ class PredictModelScreen(Screen):
 
         predictions, probabilities = self.predict_model.predict(_datetime, power_usage, appliance_in_use)
 
-        self.predict_model.visualize(predictions, appliance_in_use, probabilities, show_plot=True)
+        self.predict_model.visualize(predictions, appliance_in_use, probabilities, self.predict_model.get_image_path(), show_plot=True)
 
         p.request_input('Press enter to continue...')
         p.to_previous_screen()

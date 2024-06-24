@@ -1,4 +1,5 @@
 import os
+from abc import ABC
 
 import numpy as np
 import torch
@@ -22,7 +23,7 @@ class PytorchModel(MachineLearningModel):
 
         # Training parameters
         if hidden_size is None:
-            self.hidden_size = [52, 79, 52, 27]
+            self.hidden_size = [32, 128, 64, 128]
         else:
             self.hidden_size = hidden_size
 
@@ -31,8 +32,8 @@ class PytorchModel(MachineLearningModel):
         self.feature_columns = ['power_usage', 'hour', 'weekday']
         self.function = nn.Sigmoid()
         self.input_size = len(self.feature_columns)
-        self.test_size = 0.2
-        self.random_state = 42
+        self.test_size = 0.3
+        self.random_state = 23
 
         # Result parameters
         self.accuracy = 0
@@ -55,10 +56,10 @@ class PytorchModel(MachineLearningModel):
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
         self.scaler = StandardScaler()
 
-    def preprocess_data(self, data, fit_scaler=False):
+
+    def preprocess_data(self, data, fit_scaler=True):
         df = pd.DataFrame(data)
-        self.data = df
-        df['datetime'] = pd.to_datetime(df['datetime'], format='%Y-%m-%d %H:%M:%S')
+        df['datetime'] = pd.to_datetime(df['datetime'])
 
         # Extract additional time features
         df['hour'] = df['datetime'].dt.hour
@@ -69,48 +70,42 @@ class PytorchModel(MachineLearningModel):
         # Combine all features
         X = df[self.feature_columns]
 
-        # Fit and transform the scaler on the training data
         if fit_scaler:
-            X_scaled = self.scaler.fit_transform(X)
+            X = self.scaler.fit_transform(X)
         else:
-            X_scaled = self.scaler.transform(X)
+            X = self.scaler.transform(X)
 
-        # Convert to tensor
-        X_scaled = torch.tensor(X_scaled, dtype=torch.float32).to(self.device)
-
-        # Convert the target variable to tensor
+        X = torch.tensor(X, dtype=torch.float32).to(self.device)
         y = torch.tensor(df['appliance_in_use'].values, dtype=torch.float32).unsqueeze(1).to(self.device)
-
-        return X_scaled, y
+        return X, y
 
     def file_extension(self):
         return 'pt'
 
     def save_model(self, path):
-        path = path.replace('.' + self.file_extension(), '')
-        model_path = os.path.join(path, 'model.pt')
-        scaler_path = os.path.join(path, 'scaler.pkl')
-        parameters_path = os.path.join(path, 'parameters.json')
+        save_path = path.replace('.' + self.file_extension(), '')
+
+        model_path = save_path + '/model.' + self.file_extension()
+        scaler_path = save_path + '/scaler.pkl'
+
         os.makedirs(os.path.dirname(model_path), exist_ok=True)
-        # Save the model
-        torch.save(self.model.state_dict(), model_path)
         os.makedirs(os.path.dirname(scaler_path), exist_ok=True)
-        # Save the scaler
+
+        torch.save(self.model.state_dict(), model_path)
         joblib.dump(self.scaler, scaler_path)
 
     def load_model(self, path):
-        path = path.replace('.' + self.file_extension(), '')
-        # Load the model
-        model_path = os.path.join(path, 'model.pt')
+        load_path = path.replace('.' + self.file_extension(), '')
+
+        model_path = load_path + '/model.' + self.file_extension()
+        scaler_path = load_path + '/scaler.pkl'
+
         self.model.load_state_dict(torch.load(model_path))
-        # Load the scaler
-        scaler_path = os.path.join(path, 'scaler.pkl')
         self.scaler = joblib.load(scaler_path)
 
     def train(self, data, epochs=100, print_progress=True):
-        X, y = self.preprocess_data(data, fit_scaler=True)
-        X_train, X_test, y_train, y_test = train_test_split(X.cpu().numpy(), y.cpu().numpy(),
-                                                            train_size=1 - self.test_size,
+        X, y = self.preprocess_data(data)
+        X_train, X_test, y_train, y_test = train_test_split(X.cpu().numpy(), y.cpu().numpy(), train_size=1 - self.test_size,
                                                             test_size=self.test_size, random_state=self.random_state)
         X_train, y_train = torch.tensor(X_train, dtype=torch.float32).to(self.device), torch.tensor(y_train,
                                                                                                     dtype=torch.float32).to(
@@ -128,7 +123,7 @@ class PytorchModel(MachineLearningModel):
             self.optimizer.step()
             if self.print_progress:
                 print(f'Epoch {epoch + 1}/{epochs}, Loss: {loss.item()}')
-            socketio.emit('training_notification', {'title': 'Status update', 'message': f'Epoch {epoch + 1}/{epochs}, Loss: {loss.item()}', 'type': 'info', 'duration': 5000},)
+                socketio.emit('training_notification', {'data': f'Epoch {epoch + 1}/{epochs}, Loss: {loss.item()}'}, namespace='/test')
 
         self.evaluate(X_test, y_test)
 
@@ -143,7 +138,7 @@ class PytorchModel(MachineLearningModel):
             print(classification_report(y_test.cpu().numpy(), predictions.cpu().numpy(), zero_division=1))
 
     def predict(self, data):
-        X, _ = self.preprocess_data(data, fit_scaler=False)
+        X, _ = self.preprocess_data(data, False)
         self.model.eval()
         with torch.no_grad():
             outputs = self.model(X)
@@ -167,12 +162,6 @@ class PytorchModel(MachineLearningModel):
             'random_state': self.random_state,
             'accuracy': self.accuracy
         }
-
-    def convert_to_coreml(self, input_example):
-        self.model.eval()
-        traced_model = torch.jit.trace(self.model, input_example)
-        mlmodel = ct.convert(traced_model, inputs=[ct.TensorType(name="input", shape=input_example.shape)])
-        return mlmodel
 
 
 if __name__ == '__main__':
@@ -198,10 +187,3 @@ if __name__ == '__main__':
 
     # Prepare an example input for tracing
     example_input, _ = model.preprocess_data(data.head(1))
-
-    # Convert to CoreML
-    coreml_model = model.convert_to_coreml(example_input)
-
-    # Save the CoreML model
-    coreml_model.save('DeepBinaryClassifier.mlpackage')
-    print("CoreML model saved as 'DeepBinaryClassifier.mlpackage'")

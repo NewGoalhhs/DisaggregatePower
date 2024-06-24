@@ -21,7 +21,7 @@ class DocumentScreen(Screen):
         module = __import__('MachineLearning.' + model_name, fromlist=[model_name])
         model = getattr(module, model_name)
         instance = DocumentModelScreen(model)
-        instance.screen(p=self.p)
+        instance.screen(self.p)
 
 
     def get_generate_options(self, p) -> list:

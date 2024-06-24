@@ -25,7 +25,7 @@ class Tester:
                     continue
                 elif entry.is_dir():
                     tests += self.get_tests(new_path, depth-1)
-                else:
+                elif entry.name.endswith('Test.py'):
                     tests.append(self.get_class_from_path(new_path))
             return tests
 

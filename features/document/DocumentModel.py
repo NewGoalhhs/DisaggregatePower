@@ -74,7 +74,7 @@ class DocumentModel:
     def predict(self, model_path, appliance, datetime, power_usage, appliance_in_use, show_plot: bool = True):
         predict_model = PredictModel(model_path, appliance)
         predictions, probabilities = predict_model.predict(datetime, power_usage, appliance_in_use)
-        return predict_model.visualize(predictions, appliance_in_use, probabilities, show_plot)
+        return predict_model.visualize(predictions, appliance_in_use, probabilities, predict_model.get_image_path(), show_plot)
 
     def generate_document(self, image_path=None, chosen_datetime=None, appliance=None, custom_parameters: dict = None):
         document_helper = ResultDocumentationHelper(self.model.__class__.__name__)

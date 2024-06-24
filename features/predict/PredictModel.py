@@ -65,7 +65,8 @@ class PredictModel:
 
             return date_time, main_power, appliance_in_use
 
-    def visualize(self, predictions, real_data, propabilities, show_plot=True):
+    @classmethod
+    def visualize(cls, predictions, real_data, propabilities, image_path, show_plot=True):
         # Preprocess data
 
         # Convert tensors to numpy arrays for plotting
@@ -83,7 +84,6 @@ class PredictModel:
         plt.title('Actual vs Predicted Appliance Usage')
         plt.legend()
 
-        image_path = self.get_image_path()
         os.makedirs(os.path.dirname(image_path), exist_ok=True)
         plt.savefig(image_path)
         if show_plot:

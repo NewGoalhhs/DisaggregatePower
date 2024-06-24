@@ -40,10 +40,13 @@ class M004PowerUsage(Migration):
 
         df['building_id'] = building_id
 
-        if 'main' not in df.columns:
-            df['Total Consumption'] = df['Total Consumption'].str.replace(',', '.').astype(float)
-            df['Total Consumption'] = df['Total Consumption'].apply(lambda x: x * 100)
-            df['main'] = df['Total Consumption']
+        # if 'main' not in df.columns:
+        #     df['Total Consumption'] = df['Total Consumption'].str.replace(',', '.').astype(float)
+        #     df['Total Consumption'] = df['Total Consumption'].apply(lambda x: x * 100)
+        #     df['main_old'] = df['Total Consumption']
+
+        # Sum all the appliances to get the main power usage
+        df['main'] = df.drop(columns=['building_id', 'time', 'main']).sum(axis=1)
         data_frames.append(df[['building_id', 'time', 'main']])
 
         final_df = pd.concat(data_frames, ignore_index=True)
