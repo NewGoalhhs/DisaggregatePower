@@ -128,7 +128,7 @@ class AdvancedPredictModel:
             return ''
 
         split_entry = file_name.split('.')[0]
-        appliance_name = split_entry.split('_')[-1] + additional
+        appliance_name = split_entry.split('_')[1:] + additional
         appliances = appliance_name.split('-')
         result = []
         for appliance in appliances:

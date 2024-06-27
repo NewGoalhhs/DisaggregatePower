@@ -17,19 +17,18 @@ from MachineLearning.classifier.DeepMultiClassifier import DeepMultiClassifier
 from core.MachineLearningModel import MachineLearningModel
 
 
-class AdvancedPytorchModel(PytorchModel):
-    def __init__(self, input_size=5, hidden_size=None, learning_rate=0.0005, output_size=2, print_progress=True):
+class AdvancedPytorchModel(MachineLearningModel):
+    def __init__(self, input_size=5, hidden_size=None, learning_rate=0.001, output_size=2, print_progress=True):
         super().__init__(print_progress)
-
         # Training parameters
         if hidden_size is None:
-            self.hidden_size = [52, 79, 52, 27]
+            self.hidden_size = [25, 50, 100, 100]
         else:
             self.hidden_size = hidden_size
 
         self.learning_rate = learning_rate
 
-        self.feature_columns = ['power_usage', 'hour', 'weekday']
+        self.feature_columns = ['power_usage', 'hour', 'weekday', 'quarter_hour', 'minute']
         self.function = nn.Sigmoid()
         self.input_size = len(self.feature_columns)
         self.test_size = 0.2
@@ -66,6 +65,8 @@ class AdvancedPytorchModel(PytorchModel):
         df['day'] = df['datetime'].dt.dayofweek
         df['month'] = df['datetime'].dt.month
         df['weekday'] = df['datetime'].dt.weekday
+        df['quarter_hour'] = df['datetime'].dt.minute // 15
+        df['minute'] = df['datetime'].dt.minute
 
         # Combine all features
         X = df[self.feature_columns]
@@ -114,6 +115,30 @@ class AdvancedPytorchModel(PytorchModel):
         self.evaluate(X_test, y_test)
         # Save the scaler after training
         joblib.dump(self.scaler, 'scaler.pkl')
+
+    def file_extension(self):
+        return 'pt'
+
+    def save_model(self, path):
+        save_path = path.replace('.' + self.file_extension(), '')
+
+        model_path = save_path + '/model.' + self.file_extension()
+        scaler_path = save_path + '/scaler.pkl'
+
+        os.makedirs(os.path.dirname(model_path), exist_ok=True)
+        os.makedirs(os.path.dirname(scaler_path), exist_ok=True)
+
+        torch.save(self.model.state_dict(), model_path)
+        joblib.dump(self.scaler, scaler_path)
+
+    def load_model(self, path):
+        load_path = path.replace('.' + self.file_extension(), '')
+
+        model_path = load_path + '/model.' + self.file_extension()
+        scaler_path = load_path + '/scaler.pkl'
+
+        self.model.load_state_dict(torch.load(model_path))
+        self.scaler = joblib.load(scaler_path)
 
     def evaluate(self, X_test, y_test):
         self.model.eval()

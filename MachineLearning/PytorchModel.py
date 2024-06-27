@@ -23,17 +23,17 @@ class PytorchModel(MachineLearningModel):
 
         # Training parameters
         if hidden_size is None:
-            self.hidden_size = [32, 128, 64, 128]
+            self.hidden_size = [25, 50, 100, 50]
         else:
             self.hidden_size = hidden_size
 
         self.learning_rate = learning_rate
 
-        self.feature_columns = ['power_usage', 'hour', 'weekday']
+        self.feature_columns = ['power_usage', 'hour', 'weekday', 'quarter_hour', 'minute']
         self.function = nn.Sigmoid()
         self.input_size = len(self.feature_columns)
-        self.test_size = 0.3
-        self.random_state = 23
+        self.test_size = 0.2
+        self.random_state = 42
 
         # Result parameters
         self.accuracy = 0
@@ -66,6 +66,8 @@ class PytorchModel(MachineLearningModel):
         df['day'] = df['datetime'].dt.dayofweek
         df['month'] = df['datetime'].dt.month
         df['weekday'] = df['datetime'].dt.weekday
+        df['quarter_hour'] = df['datetime'].dt.minute // 15
+        df['minute'] = df['datetime'].dt.minute
 
         # Combine all features
         X = df[self.feature_columns]
@@ -123,7 +125,12 @@ class PytorchModel(MachineLearningModel):
             self.optimizer.step()
             if self.print_progress:
                 print(f'Epoch {epoch + 1}/{epochs}, Loss: {loss.item()}')
-                socketio.emit('training_notification', {'data': f'Epoch {epoch + 1}/{epochs}, Loss: {loss.item()}'}, namespace='/test')
+                socketio.emit('training_notification', {
+                    'title': 'Status update',
+                    'message': f'Epoch {epoch + 1}/{epochs}, Loss: {loss.item()}',
+                    'type': 'info',
+                    'duration': 5000
+                })
 
         self.evaluate(X_test, y_test)
 
